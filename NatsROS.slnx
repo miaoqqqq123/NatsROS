@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="NatsROS.Cli/NatsROS.Cli.csproj" />
+  <Project Path="NatsROS.Container/NatsROS.Container.csproj" Id="8edd8497-436f-4382-8da3-220b6fad854f" />
+  <Project Path="NatsROS.Core/NatsROS.Core.csproj" />
+  <Project Path="NatsROS.Dashboard/NatsROS.Dashboard.csproj" Id="9ac59a18-584c-4933-91fc-6b9f59ba6ce1" />
+  <Project Path="NatsROS.Examples/NatsROS.Examples.csproj" />
+  <Project Path="NatsROS.Hosting/NatsROS.Hosting.csproj" Id="c46abcfe-cddc-4b3f-9fe4-aa4436ca7cd6" />
+  <Project Path="NatsROS.Messages/NatsROS.Messages.csproj" />
+</Solution>
