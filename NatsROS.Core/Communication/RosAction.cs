@@ -7,13 +7,22 @@ using System.Threading.Tasks;
 
 namespace NatsROS.Core.Communication;
 
-// ==========================================
-// Action 服务端 (执行长任务)
-// ==========================================
+
+/// <summary>
+/// Action 服务端 (执行长任务)
+/// </summary>
+/// <typeparam name="TGoal"></typeparam>
+/// <typeparam name="TFeedback"></typeparam>
+/// <typeparam name="TResult"></typeparam>
+/// <param name="nats"></param>
+/// <param name="actionName"></param>
+
 public class RosActionServer<TGoal, TFeedback, TResult>(INatsClient nats, string actionName)
-    where TGoal : IRosMessage where TFeedback : IRosMessage where TResult : IRosMessage // 要求有无参构造以应对取消时返回默认值
+    where TGoal : IRosActionGoal<TFeedback, TResult>
+    where TFeedback : IRosMessage 
+    where TResult : IRosMessage 
 {
-    private readonly RosServiceServer<ActionGoal<TGoal>, ActionResult<TResult>> _goalServer = new(nats, $"{actionName}.goal");
+    private readonly RosServiceServer<ActionGoal<TGoal, TResult>, ActionResult<TResult>> _goalServer = new(nats, $"{actionName}.goal");
     private readonly RosSubscriber<ActionCancelReq> _cancelSub = new(nats, $"{actionName}.cancel", RosQosProfile.SensorData);
     private readonly RosPublisher<ActionFeedback<TFeedback>> _feedbackPub = new(nats, $"{actionName}.feedback", RosQosProfile.SensorData);
 
@@ -30,9 +39,20 @@ public class RosActionServer<TGoal, TFeedback, TResult>(INatsClient nats, string
         _ = Task.Run(async () => {
             await foreach (var msg in _cancelSub.SubscribeAsync(ct))
             {
-                if (msg != null && _activeGoals.TryGetValue(msg.GoalId, out var cts))
+                if (msg == null) continue;
+
+                // 【核心魔法】：如果收到 "*" 或空字符串，瞬间中断该 Action 下所有的活动任务！
+                if (string.IsNullOrEmpty(msg.GoalId) || msg.GoalId == "*")
                 {
-                    cts.Cancel(); // 触发对应任务的取消
+                    foreach (var cts in _activeGoals.Values)
+                    {
+                        cts.Cancel();
+                    }
+                }
+                else if (_activeGoals.TryGetValue(msg.GoalId, out var cts))
+                {
+                    // 否则，只精确取消对应的那个 GoalId
+                    cts.Cancel();
                 }
             }
         }, ct);
@@ -70,13 +90,21 @@ public class RosActionServer<TGoal, TFeedback, TResult>(INatsClient nats, string
     }
 }
 
-// ==========================================
-// Action 客户端 (发起任务与获取反馈)
-// ==========================================
+
+/// <summary>
+/// Action 客户端 (发起任务与获取反馈)
+/// </summary>
+/// <typeparam name="TGoal"></typeparam>
+/// <typeparam name="TFeedback"></typeparam>
+/// <typeparam name="TResult"></typeparam>
+/// <param name="nats"></param>
+/// <param name="actionName"></param>
 public class RosActionClient<TGoal, TFeedback, TResult>(INatsClient nats, string actionName)
-    where TGoal : IRosMessage where TFeedback : IRosMessage where TResult : IRosMessage
+    where TGoal : IRosActionGoal<TFeedback, TResult>
+    where TFeedback : IRosMessage 
+    where TResult : IRosMessage
 {
-    private readonly RosServiceClient<ActionGoal<TGoal>, ActionResult<TResult>> _goalClient = new(nats, $"{actionName}.goal");
+    private readonly RosServiceClient<ActionGoal<TGoal, TResult>, ActionResult<TResult>> _goalClient = new(nats, $"{actionName}.goal");
     private readonly RosPublisher<ActionCancelReq> _cancelPub = new(nats, $"{actionName}.cancel", RosQosProfile.SensorData);
     private readonly RosSubscriber<ActionFeedback<TFeedback>> _feedbackSub = new(nats, $"{actionName}.feedback", RosQosProfile.SensorData);
 
@@ -100,7 +128,7 @@ public class RosActionClient<TGoal, TFeedback, TResult>(INatsClient nats, string
         try
         {
             // 2. 发起 RPC 等待最终结果 (动作可能很长，这里设置无限超时，依赖 ct 控制)
-            return await _goalClient.CallAsync(new ActionGoal<TGoal>(goalId, goal), Timeout.InfiniteTimeSpan, ct);
+            return await _goalClient.CallAsync(new ActionGoal<TGoal, TResult>(goalId, goal), Timeout.InfiniteTimeSpan, ct);
         }
         finally
         {

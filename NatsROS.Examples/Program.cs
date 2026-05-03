@@ -29,7 +29,7 @@ namespace NatsROS.Examples
                 Logger.LogDebug("发布: {Data}", msg.Data);
 
                 await publisher.PublishAsync(msg, stoppingToken);
-                await Task.Delay(2000, stoppingToken); // 2秒发一次
+                await Task.Delay(100, stoppingToken); // 2秒发一次
             }
         }
     }

@@ -6,17 +6,156 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyVersion>1.2026.0503.0</AssemblyVersion>
+    <FileVersion>1.2026.0503.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TopicMonitorItem.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DevExpress.Images" Version="23.2.3" />
+    <PackageReference Include="devexpress.wpf.diagram" Version="23.2.3" />
     <PackageReference Include="devexpress.wpf.grid.core" Version="23.2.3" />
     <PackageReference Include="devexpress.wpf.layoutcontrol" Version="23.2.3" />
+    <PackageReference Include="devexpress.wpf.propertygrid" Version="23.2.3" />
     <PackageReference Include="MessagePack" Version="3.1.4" />
     <PackageReference Include="NATS.Net" Version="2.7.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Hexiv.BehaviorTree\Hexiv.BehaviorTree.csproj" />
+    <ProjectReference Include="..\NatsROS.Container\NatsROS.Container.csproj" />
     <ProjectReference Include="..\NatsROS.Core\NatsROS.Core.csproj" />
+    <ProjectReference Include="..\NatsROS.Examples\NatsROS.Examples.csproj" />
+    <ProjectReference Include="..\NatsROS.Hosting\NatsROS.Hosting.csproj" />
+    <ProjectReference Include="..\NatsROS.Messages\NatsROS.Messages.csproj" />
+    <ProjectReference Include="..\NatsROS.OpenTAP.Plugins\NatsROS.OpenTAP.Plugins.csproj" />
+    <ProjectReference Include="..\ScrewMachine.MissionControl.MainDirector\ScrewMachine.MissionControl.MainDirector.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DevExpress.Xpf.Themes.DXStyle.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.DXStyle.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.HybridApp.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.HybridApp.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.LightGray.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.LightGray.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.MetropolisDark.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.MetropolisDark.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.MetropolisLight.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.MetropolisLight.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2007Black.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2007Black.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2007Blue.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2007Blue.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2007Silver.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2007Silver.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2010Black.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2010Black.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2010Blue.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2010Blue.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2010Silver.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2010Silver.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2013.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2013.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2013DarkGray.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2013DarkGray.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2013LightGray.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2013LightGray.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2016Black.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2016Black.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2016BlackSE.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2016BlackSE.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2016Colorful.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2016Colorful.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2016ColorfulSE.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2016ColorfulSE.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2016DarkGraySE.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2016DarkGraySE.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2016White.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2016White.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2016WhiteSE.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2016WhiteSE.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2019Black.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2019Black.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2019Colorful.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2019Colorful.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2019DarkGray.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2019DarkGray.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2019HighContrast.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2019HighContrast.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Office2019White.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Office2019White.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Seven.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Seven.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.TouchlineDark.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.TouchlineDark.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.VS2010.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.VS2010.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.VS2017Blue.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.VS2017Blue.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.VS2017Dark.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.VS2017Dark.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.VS2017Light.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.VS2017Light.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.VS2019Blue.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.VS2019Blue.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.VS2019Dark.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.VS2019Dark.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.VS2019Light.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.VS2019Light.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Win10Dark.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Win10Dark.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Win10Light.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Win10Light.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Win11Dark.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Win11Dark.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Themes.Win11Light.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Win11Light.v23.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.ThemesLW.v23.2">
+      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.ThemesLW.v23.2.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,81 @@
+﻿<UserControl
+    x:Class="NatsROS.Dashboard.Plugins.Introspection.NodeGraphView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+    xmlns:dxdiag="http://schemas.devexpress.com/winfx/2008/xaml/diagram"
+    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+    xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+    Background="Transparent">
+
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <dxlc:LayoutControl
+            Grid.Row="0"
+            Margin="0,0,0,5"
+            Padding="0">
+            <dxlc:LayoutGroup Orientation="Horizontal" View="Group">
+                <dx:SimpleButton
+                    Width="180"
+                    Height="30"
+                    Click="BtnGenerateGraph_Click"
+                    Content="🔍 扫描并生成拓扑图" />
+                <dx:SimpleButton
+                    Width="200"
+                    Height="30"
+                    Margin="10,0,0,0"
+                    Click="BtnAutoLayout_Click"
+                    Content="✨ 重新自动排版 (Sugiyama)" />
+                <Label
+                    Margin="15,0,0,0"
+                    VerticalAlignment="Center"
+                    Content="图例：方形=Node | 椭圆=Topic | 菱形=Service"
+                    Foreground="Gray" />
+            </dxlc:LayoutGroup>
+        </dxlc:LayoutControl>
+
+        <dxlc:LayoutControl
+            Grid.Row="1"
+            Margin="0,0,0,10"
+            Padding="0">
+            <dxlc:LayoutGroup
+                Header="节点与话题过滤器 (Filters)"
+                Orientation="Horizontal"
+                View="GroupBox">
+                <dxe:CheckEdit
+                    x:Name="ChkHideRosout"
+                    Margin="0,0,15,0"
+                    Content="隐藏系统日志 (Hide /rosout)"
+                    IsChecked="True" />
+                <dxe:CheckEdit
+                    x:Name="ChkHideParams"
+                    Margin="0,0,15,0"
+                    Content="隐藏参数服务 (Hide Params)"
+                    IsChecked="True" />
+                <dxe:CheckEdit
+                    x:Name="ChkHideServices"
+                    Margin="0,0,15,0"
+                    Content="隐藏所有服务 (Hide Services)"
+                    IsChecked="False" />
+                <dxe:CheckEdit
+                    x:Name="ChkHideDiscovery"
+                    Content="隐藏发现协议 (Hide Discovery)"
+                    IsChecked="True" />
+            </dxlc:LayoutGroup>
+        </dxlc:LayoutControl>
+
+        <dxlc:LayoutGroup Grid.Row="2" View="GroupBox">
+            <dxdiag:DiagramControl
+                x:Name="DiagramGraph"
+                LineJumpSize="0,0"
+                ShowGrid="False"
+                ShowPageBreaks="False"
+                ShowRulers="False" />
+        </dxlc:LayoutGroup>
+    </Grid>
+</UserControl>

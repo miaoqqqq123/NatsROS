@@ -14,6 +14,8 @@ public class RosParameterServer
     private readonly ConcurrentDictionary<string, string> _store = new();
     private readonly RosServiceServer<SetParamReq, SetParamRes> _setServer;
     private readonly RosServiceServer<GetParamReq, GetParamRes> _getServer;
+    // 在类顶部追加字段
+    private readonly RosServiceServer<ListParamsReq, ListParamsRes> _listServer;
 
     // 当参数被外部修改时，触发此事件，方便节点内部做出响应
     public event Action<string, string>? OnParameterChanged;
@@ -22,6 +24,8 @@ public class RosParameterServer
     {
         _setServer = new(nats, $"{nodeName}.param.set");
         _getServer = new(nats, $"{nodeName}.param.get");
+        _listServer = new(nats, $"{nodeName}.param.list"); // 【新增】
+
     }
 
     public void Start(CancellationToken ct)
@@ -39,6 +43,14 @@ public class RosParameterServer
         {
             bool exists = _store.TryGetValue(req.Name, out var val);
             return Task.FromResult(new GetParamRes(val ?? string.Empty, exists));
+        }, ct);
+
+        // 【新增】：监听列出所有参数的请求
+        _ = _listServer.ServeAsync(req =>
+        {
+            // 直接把字典里所有的 Key 提取成数组返回
+            var keys = _store.Keys.ToArray();
+            return Task.FromResult(new ListParamsRes(keys));
         }, ct);
     }
 

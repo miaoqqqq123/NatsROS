@@ -1,0 +1,36 @@
+{
+  "Nodes": [
+    {
+      "NodeName": "axis_x",
+      "AssemblyName": "NatsROS.Examples",
+      "TypeName": "NatsROS.Examples.SimulatedAxisNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "engine_1",
+      "AssemblyName": "NatsROS.OpenTAP.Plugins",
+      "TypeName": "NatsROS.OpenTAP.Plugins.OpenTapEngineNode",
+      "Parameters": {
+        "plan_path": "C:\\Users\\miao\\Desktop\\ZROS-1\\MoveTest1.TapPlan",
+        "action_name": "engine.engine_1.run"
+      },
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "brain",
+      "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
+      "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Parameters": {
+        "TreePath": "C:\\Users\\Hexiv\\Desktop\\MyBehaviorTree.xml"
+      },
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    }
+  ]
+}

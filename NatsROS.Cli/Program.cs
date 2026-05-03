@@ -101,8 +101,8 @@ namespace NatsROS.Cli
                 var res = await nats.RequestAsync<ListNodesReq, ListNodesRes>("container.list_nodes", new ListNodesReq(), replyOpts: new NatsSubOpts { Timeout = TimeSpan.FromSeconds(3) });
                 if (res.Data != null)
                 {
-                    Console.WriteLine($"\n母体当前承载了 {res.Data.NodeNames.Length} 个节点：");
-                    foreach (var n in res.Data.NodeNames)
+                    Console.WriteLine($"\n母体当前承载了 {res.Data.Nodes.Length} 个节点：");
+                    foreach (var n in res.Data.Nodes)
                     {
                         Console.WriteLine($"  - {n}");
                     }

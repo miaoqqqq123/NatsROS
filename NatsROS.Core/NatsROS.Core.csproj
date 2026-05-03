@@ -1,15 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-  <ItemGroup>
-    <PackageReference Include="MessagePack" Version="3.1.4" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
-    <PackageReference Include="NATS.Net" Version="2.7.3" />
-  </ItemGroup>
+		<!-- 📦 企业级 NuGet 打包配置 -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageId>Hexiv.NatsROS.Core</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>Hexiv Platform Team</Authors>
+		<Company>Hexiv Automation</Company>
+		<Description>NatsROS 核心通信引擎。基于 NATS.Net 和 MessagePack，提供工业级的高性能 Pub/Sub、RPC 和分布式生命周期管理。</Description>
+		<AssemblyVersion>1.2026.0503.0</AssemblyVersion>
+		<FileVersion>1.2026.0503.0</FileVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MessagePack" Version="3.1.4" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
+		<PackageReference Include="NATS.Net" Version="2.7.3" />
+	</ItemGroup>
 
 </Project>

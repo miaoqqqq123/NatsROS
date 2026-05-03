@@ -10,13 +10,16 @@ public enum ActionStatus : byte
 }
 
 [MessagePackObject]
-public record ActionCancelReq([property: Key(0)] string GoalId) : IRosMessage;
+public record ActionCancelReq(
+    [property: Key(0)] string GoalId
+ ) : IRosMessage;
 
 [MessagePackObject]
-public record ActionGoal<TGoal>(
+public record ActionGoal<TGoal, TResult>(
     [property: Key(0)] string GoalId,
     [property: Key(1)] TGoal Data
-) : IRosMessage;
+) : IRosRequest<ActionResult<TResult>>
+    where TResult : IRosMessage;
 
 [MessagePackObject]
 public record ActionFeedback<TFeedback>(

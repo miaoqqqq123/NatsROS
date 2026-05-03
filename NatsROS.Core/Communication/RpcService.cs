@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace NatsROS.Core.Communication;
 
 public class RosServiceClient<TReq, TRes>(INatsClient nats, string serviceName)
-    where TReq : IRosMessage
+    where TReq : IRosRequest<TRes>
     where TRes : IRosMessage
 {
     public string ServiceName { get; } = serviceName;
@@ -28,7 +28,7 @@ public class RosServiceClient<TReq, TRes>(INatsClient nats, string serviceName)
 }
 
 public class RosServiceServer<TReq, TRes>(INatsClient nats, string serviceName)
-    where TReq : IRosMessage
+    where TReq : IRosRequest<TRes>
     where TRes : IRosMessage
 {
     public string ServiceName { get; } = serviceName;

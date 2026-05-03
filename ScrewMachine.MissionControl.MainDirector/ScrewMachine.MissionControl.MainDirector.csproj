@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyVersion>1.2026.0503.0</AssemblyVersion>
+    <FileVersion>1.2026.0503.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="BehaviorTree\**" />
+    <EmbeddedResource Remove="BehaviorTree\**" />
+    <None Remove="BehaviorTree\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+    <PackageReference Include="NATS.Net" Version="2.7.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hexiv.BehaviorTree\Hexiv.BehaviorTree.csproj" />
+    <ProjectReference Include="..\NatsROS.Core\NatsROS.Core.csproj" />
+    <ProjectReference Include="..\NatsROS.Hosting\NatsROS.Hosting.csproj" />
+    <ProjectReference Include="..\NatsROS.Messages\NatsROS.Messages.csproj" />
+  </ItemGroup>
+
+</Project>

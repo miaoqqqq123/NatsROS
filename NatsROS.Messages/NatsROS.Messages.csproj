@@ -1,17 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-  <ItemGroup>
-    <PackageReference Include="MessagePack" Version="3.1.4" />
-  </ItemGroup>
+		<!-- 📦 企业级 NuGet 打包配置 -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageId>Hexiv.NatsROS.Messages</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>Hexiv Platform Team</Authors>
+		<Company>Hexiv Automation</Company>
+		<Description>NatsROS 底层契约库。包含标准的话题 (Topic)、服务 (Service) 和动作 (Action) 数据模型。</Description>
+		<RepositoryUrl>https://your-internal-git-repo/natsros</RepositoryUrl>
+		<AssemblyVersion>1.2026.0503.0</AssemblyVersion>
+		<FileVersion>1.2026.0503.0</FileVersion>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NatsROS.Core\NatsROS.Core.csproj" />
-  </ItemGroup>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MessagePack" Version="3.1.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\NatsROS.Core\NatsROS.Core.csproj" />
+	</ItemGroup>
 
 </Project>

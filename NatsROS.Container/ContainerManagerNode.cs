@@ -24,7 +24,7 @@ public class ContainerManagerNode(INatsClient nats, ILogger<ContainerManagerNode
         var t1 = loadServer.ServeAsync(async req =>
         {
             Logger.LogInformation("收到加载节点请求: {TypeName} -> {NodeName}", req.TypeName, req.NodeName);
-            var result = await nodeManager.LoadAndStartNodeAsync(req.AssemblyName, req.TypeName, req.NodeName);
+            var result = await nodeManager.LoadNodeFromReqAsync(req);
             return new LoadNodeRes(result.Success, result.Message);
         }, stoppingToken);
 
@@ -41,7 +41,16 @@ public class ContainerManagerNode(INatsClient nats, ILogger<ContainerManagerNode
             return Task.FromResult(new ListNodesRes(nodes));
         }, stoppingToken);
 
-        await Task.WhenAll(t1, t2, t3);
+        // 追加状态切换监听
+        var stateServer = CreateServer<ChangeStateReq, ChangeStateRes>("container.change_state");
+        var t4 = stateServer.ServeAsync(async req =>
+        {
+            Logger.LogInformation("收到状态切换请求: {Node} -> {State}", req.NodeName, req.TargetState);
+            var result = await nodeManager.ChangeNodeStateAsync(req.NodeName, req.TargetState);
+            return new ChangeStateRes(result.Success);
+        }, stoppingToken);
+
+        await Task.WhenAll(t1, t2, t3, t4); // 记得把 t4 加进等待里
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)

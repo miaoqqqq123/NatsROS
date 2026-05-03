@@ -1,0 +1,260 @@
+﻿<UserControl
+    x:Class="NatsROS.Dashboard.Plugins.RecipeEditor.RecipeEditorView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+    xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+    xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+    Background="Transparent">
+
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  顶部控制条  -->
+        <dxlc:LayoutControl
+            Grid.Row="0"
+            Margin="0,0,0,10"
+            Padding="0">
+            <dxlc:LayoutGroup Orientation="Horizontal">
+                <dx:SimpleButton
+                    Width="150"
+                    Height="30"
+                    Click="BtnLoadRecipe_Click"
+                    Content="📂 导入 launch.json"
+                    Glyph="{dx:DXImage 'SvgImages/Actions/Open.svg'}" />
+                <dx:SimpleButton
+                    Width="150"
+                    Height="30"
+                    Margin="10,0,0,0"
+                    Click="BtnSaveRecipe_Click"
+                    Content="💾 导出为开机配方"
+                    Glyph="{dx:DXImage 'SvgImages/Save/Save.svg'}" />
+                <dx:SimpleButton
+                    Width="180"
+                    Height="30"
+                    Margin="30,0,0,0"
+                    Background="#DDFFDD"
+                    Click="BtnLaunchAll_Click"
+                    Content="🚀 一键发射 (Launch All)"
+                    FontWeight="Bold"
+                    Foreground="DarkGreen"
+                    Glyph="{dx:DXImage 'SvgImages/Arrows/Next.svg'}" />
+            </dxlc:LayoutGroup>
+        </dxlc:LayoutControl>
+
+        <!--  下半部分：三列布局  -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="1.5*" />
+            </Grid.ColumnDefinitions>
+
+            <!--  1. 左侧：智能组件库 (带有底部描述)  -->
+            <dxlc:LayoutGroup
+                Grid.Column="0"
+                Header="🛒 组件库 (双击加入配方)"
+                View="GroupBox">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <dxg:GridControl
+                        x:Name="GridAvailableNodes"
+                        AutoGenerateColumns="None"
+                        MouseDoubleClick="GridAvailableNodes_MouseDoubleClick">
+                        <dxg:GridControl.View>
+                            <dxg:TableView
+                                AllowEditing="False"
+                                NavigationStyle="Row"
+                                ShowGroupPanel="True" />
+                        </dxg:GridControl.View>
+                        <dxg:GridColumn
+                            FieldName="Category"
+                            GroupIndex="0"
+                            Header="分类" />
+                        <dxg:GridColumn
+                            Width="*"
+                            FieldName="FullDisplayName"
+                            Header="组件名称" />
+                    </dxg:GridControl>
+
+                    <!--  组件描述面板  -->
+                    <dxlc:LayoutGroup
+                        Grid.Row="1"
+                        Height="100"
+                        Margin="0,5,0,0"
+                        Header="描述 (Description)"
+                        View="GroupBox">
+                        <StackPanel>
+                            <TextBlock
+                                Margin="0,0,0,5"
+                                FontWeight="Bold"
+                                Text="{Binding ElementName=GridAvailableNodes, Path=SelectedItem.FullDisplayName, StringFormat='名称: {0}'}" />
+                            <TextBlock
+                                Foreground="DarkGray"
+                                Text="{Binding ElementName=GridAvailableNodes, Path=SelectedItem.Description, StringFormat='描述: {0}'}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </dxlc:LayoutGroup>
+                </Grid>
+            </dxlc:LayoutGroup>
+
+            <GridSplitter
+                Grid.Column="1"
+                HorizontalAlignment="Stretch"
+                Background="Transparent" />
+
+            <!--  2. 中间：待启动清单 (带有下拉框的自愈策略)  -->
+            <dxlc:LayoutGroup
+                Grid.Column="2"
+                Header="📝 待启动实例清单 (Recipe Nodes)"
+                View="GroupBox">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <dxg:GridControl
+                        x:Name="GridRecipeNodes"
+                        Grid.Row="0"
+                        AutoGenerateColumns="None"
+                        SelectedItemChanged="GridRecipeNodes_SelectedItemChanged">
+                        <dxg:GridControl.View>
+                            <dxg:TableView
+                                AllowEditing="True"
+                                EnableImmediatePosting="True"
+                                NavigationStyle="Cell"
+                                ShowGroupPanel="False" />
+                        </dxg:GridControl.View>
+                        <dxg:GridColumn
+                            Width="120"
+                            AllowEditing="True"
+                            FieldName="NodeName"
+                            Header="实例名称(Name)" />
+                        <dxg:GridColumn
+                            Width="*"
+                            AllowEditing="False"
+                            FieldName="TypeName"
+                            Header="类名(Class)"
+                            ReadOnly="True" />
+
+                        <!--  【核心魔法】：把数字变成了完美的下拉框  -->
+                        <dxg:GridColumn
+                            Width="180"
+                            FieldName="RestartPolicy"
+                            Header="崩溃自愈策略 (Policy)">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:ComboBoxEditSettings
+                                    x:Name="CboRestartPolicySettings"
+                                    DisplayMember="Name"
+                                    IsTextEditable="False"
+                                    ValueMember="Id" />
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                    </dxg:GridControl>
+
+                    <dx:SimpleButton
+                        Grid.Row="1"
+                        Height="30"
+                        Margin="0,10,0,0"
+                        Click="BtnRemoveRecipeNode_Click"
+                        Content="❌ 移除选中实例" />
+                </Grid>
+            </dxlc:LayoutGroup>
+
+            <GridSplitter
+                Grid.Column="3"
+                HorizontalAlignment="Stretch"
+                Background="Transparent" />
+
+            <!--  3. 右侧：分组参数表与描述 (对标 OpenTAP)  -->
+            <dxlc:LayoutGroup
+                x:Name="GrpParams"
+                Grid.Column="4"
+                Header="⚙️ 参数配置 (Parameters)"
+                View="GroupBox">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <dxg:GridControl
+                        x:Name="GridParams"
+                        Grid.Row="0"
+                        AutoGenerateColumns="None">
+                        <dxg:GridControl.View>
+                            <!--  DefaultGroupingExpansionState="Expanded" 让分组默认全部展开  -->
+                            <dxg:TableView
+                                AllowEditing="True"
+                                EnableImmediatePosting="True"
+                                ShowGroupPanel="False" />
+                        </dxg:GridControl.View>
+
+                        <!--  隐藏的分类列，专职用于 Grouping  -->
+                        <dxg:GridColumn
+                            FieldName="Category"
+                            GroupIndex="0"
+                            Header="分类"
+                            Visible="False" />
+
+                        <dxg:GridColumn
+                            Width="150"
+                            AllowEditing="False"
+                            FieldName="Key"
+                            Header="属性 (Property)">
+                            <dxg:GridColumn.EditSettings>
+                                <dxe:TextEditSettings />
+                            </dxg:GridColumn.EditSettings>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn
+                            Width="*"
+                            FieldName="Value"
+                            Header="设定值 (可修改)">
+                            <dxg:GridColumn.CellTemplate>
+                                <DataTemplate>
+                                    <!--  PART_Editor 是 DevExpress 的保留字，它会自动接管双向绑定！  -->
+                                    <dxe:ButtonEdit
+                                        x:Name="PART_Editor"
+                                        AllowDefaultButton="{Binding RowData.Row.IsFilePath}"
+                                        DefaultButtonClick="BtnBrowseFile_Click">
+                                        <!--  当不是路径时，按钮自动隐藏，完全是个普通文本框  -->
+                                    </dxe:ButtonEdit>
+                                </DataTemplate>
+                            </dxg:GridColumn.CellTemplate>
+                        </dxg:GridColumn>
+
+                    </dxg:GridControl>
+
+                    <!--  参数描述面板  -->
+                    <dxlc:LayoutGroup
+                        Grid.Row="1"
+                        Height="100"
+                        Margin="0,5,0,0"
+                        Header="描述 (Description)"
+                        View="GroupBox">
+                        <StackPanel>
+                            <TextBlock
+                                Margin="0,0,0,5"
+                                FontWeight="Bold"
+                                Text="{Binding ElementName=GridParams, Path=SelectedItem.Key, StringFormat='名称: {0}'}" />
+                            <TextBlock
+                                Foreground="DarkGray"
+                                Text="{Binding ElementName=GridParams, Path=SelectedItem.Description, StringFormat='描述: {0}'}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </dxlc:LayoutGroup>
+                </Grid>
+            </dxlc:LayoutGroup>
+        </Grid>
+    </Grid>
+</UserControl>

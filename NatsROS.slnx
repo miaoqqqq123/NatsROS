@@ -1,9 +1,12 @@
 <Solution>
-  <Project Path="NatsROS.Cli/NatsROS.Cli.csproj" />
+  <Project Path="Hexiv.BehaviorTree/Hexiv.BehaviorTree.csproj" Id="59b1304b-7ae4-4b94-b5ae-e03611e6d865" />
   <Project Path="NatsROS.Container/NatsROS.Container.csproj" Id="8edd8497-436f-4382-8da3-220b6fad854f" />
   <Project Path="NatsROS.Core/NatsROS.Core.csproj" />
   <Project Path="NatsROS.Dashboard/NatsROS.Dashboard.csproj" Id="9ac59a18-584c-4933-91fc-6b9f59ba6ce1" />
   <Project Path="NatsROS.Examples/NatsROS.Examples.csproj" />
+  <Project Path="NatsROS.Hmi/NatsROS.Hmi.csproj" />
   <Project Path="NatsROS.Hosting/NatsROS.Hosting.csproj" Id="c46abcfe-cddc-4b3f-9fe4-aa4436ca7cd6" />
   <Project Path="NatsROS.Messages/NatsROS.Messages.csproj" />
+  <Project Path="NatsROS.OpenTAP.Plugins/NatsROS.OpenTAP.Plugins.csproj" Id="e1ac5446-c77f-4966-a1f4-d7ebe816397b" />
+  <Project Path="ScrewMachine.MissionControl.MainDirector/ScrewMachine.MissionControl.MainDirector.csproj" Id="c5e857e6-dcd9-4788-8e6b-996f207e980b" />
 </Solution>
