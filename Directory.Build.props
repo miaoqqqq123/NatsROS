@@ -1,0 +1,17 @@
+<Project>
+	<PropertyGroup>
+		<!-- 1. 万剑归宗：强制将所有项目的编译结果输出到根目录的 Deploy_Build\Bin 下 -->
+		<OutputPath>$(MSBuildThisFileDirectory)Deploy_Build\Bin\</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+
+		<!-- 强制把所有 NuGet 第三方包的 DLL 物理拷贝到输出目录，彻底摆脱底层账本依赖！ -->
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+		<!-- 4. 统一 C# 代码规范 (如果您想统一全公司的代码风格，写在这里最管用) -->
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+</Project>

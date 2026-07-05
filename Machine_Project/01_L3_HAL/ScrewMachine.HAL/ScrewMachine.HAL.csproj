@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyVersion>1.2026.0609.0</AssemblyVersion>
+    <FileVersion>1.2026.0609.0</FileVersion>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Core\NatsROS.Core.csproj" />
+    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Hosting\NatsROS.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Messages\NatsROS.Messages.csproj" />
+  </ItemGroup>
+
+</Project>

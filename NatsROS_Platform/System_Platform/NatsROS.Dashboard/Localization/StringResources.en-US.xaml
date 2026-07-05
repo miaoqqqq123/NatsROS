@@ -1,0 +1,11 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    <system:String x:Key="MainTitle">NatsROS Industrial Dashboard (V2.0)</system:String>
+    <system:String x:Key="WelcomeMsg">NatsROS Industrial Dashboard</system:String>
+    <system:String x:Key="SubWelcomeMsg">Enterprise Distributed Robotics Framework based on NATS</system:String>
+    <system:String x:Key="LangSwitchBtn">🌐 Switch Lang (中文)</system:String>
+    <system:String x:Key="SaveLayoutBtn">💾 Save Layout</system:String>
+    <system:String x:Key="ResetLayoutBtn">🔄 Reset Layout</system:String>
+</ResourceDictionary>

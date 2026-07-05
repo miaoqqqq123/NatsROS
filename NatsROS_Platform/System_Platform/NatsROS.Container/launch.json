@@ -1,0 +1,16 @@
+{
+  "Nodes": [
+    {
+      "NodeName": "brainnode_1",
+      "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
+      "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Parameters": {
+        "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\NatsROS.Container\\bin\\Debug\\net8.0\\Recipes\\MyBehaviorTree.xml",
+        "AutoStart": "True"
+      },
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    }
+  ]
+}

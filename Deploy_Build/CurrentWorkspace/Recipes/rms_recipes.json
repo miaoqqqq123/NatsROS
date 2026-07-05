@@ -1,0 +1,15 @@
+[
+  {
+    "RecipeId": "RECIPE_NEW_001",
+    "RecipeName": "\u65B0\u4EA7\u54C1\u914D\u65B9",
+    "Version": "V1.0",
+    "State": 1,
+    "ProcedureTreeName": "SelfHealingTree.xml",
+    "Formula": {
+      "Velocity": "30",
+      "SafeZ": "50"
+    },
+    "LastModifiedBy": "\u5DE5\u7A0B\u5E08_Admin",
+    "LastModifiedTime": 1780975446997
+  }
+]

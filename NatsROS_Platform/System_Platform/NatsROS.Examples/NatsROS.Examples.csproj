@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyVersion>1.2026.0603.0</AssemblyVersion>
+    <FileVersion>1.2026.0603.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.4" />
+    <PackageReference Include="NATS.Net" Version="2.7.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework_Core\NatsROS.Core\NatsROS.Core.csproj" />
+    <ProjectReference Include="..\..\Framework_Core\NatsROS.Hosting\NatsROS.Hosting.csproj" />
+    <ProjectReference Include="..\..\Framework_Core\NatsROS.Messages\NatsROS.Messages.csproj" />
+
+  </ItemGroup>
+
+</Project>
