@@ -172,7 +172,7 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTreeEditor
 
             foreach (var type in nodeTypes)
             {
-                var attr = type.GetCustomAttribute<RosNodeAttribute>();
+                var attr = type.GetCustomAttribute<Hexiv.BehaviorTree.Attributes.BtNodeAttribute>();
                 string displayName = attr?.DisplayName ?? type.Name;
                 // 业务节点统一用深绿色圆角矩形
                 RegisterNodeToStencil(stencil, type.Name, displayName, BasicShapes.RoundedRectangle, Color.FromRgb(46, 125, 50), type);

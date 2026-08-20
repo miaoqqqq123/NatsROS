@@ -1,16 +1,7 @@
 {
   "Nodes": [
     {
-      "NodeName": "simulatedvisionnode_1",
-      "AssemblyName": "ScrewMachine.HAL",
-      "TypeName": "ScrewMachine.HAL.SimulatedVisionNode",
-      "Parameters": {},
-      "RestartPolicy": 1,
-      "MaxRetries": 3,
-      "RestartDelaySeconds": 5
-    },
-    {
-      "NodeName": "simulatedaxisnode_1",
+      "NodeName": "axis_y1",
       "AssemblyName": "ScrewMachine.HAL",
       "TypeName": "ScrewMachine.HAL.SimulatedAxisNode",
       "Parameters": {},
@@ -19,31 +10,10 @@
       "RestartDelaySeconds": 5
     },
     {
-      "NodeName": "mockmesnode_1",
-      "AssemblyName": "NatsROS.KernelNodes",
-      "TypeName": "NatsROS.KernelNodes.MockMesNode",
-      "Parameters": {},
-      "RestartPolicy": 1,
-      "MaxRetries": 3,
-      "RestartDelaySeconds": 5
-    },
-    {
-      "NodeName": "simulateddispensernode_1",
+      "NodeName": "axis_y2",
       "AssemblyName": "ScrewMachine.HAL",
-      "TypeName": "ScrewMachine.HAL.SimulatedDispenserNode",
+      "TypeName": "ScrewMachine.HAL.SimulatedAxisNode",
       "Parameters": {},
-      "RestartPolicy": 1,
-      "MaxRetries": 3,
-      "RestartDelaySeconds": 5
-    },
-    {
-      "NodeName": "brain",
-      "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
-      "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
-      "Parameters": {
-        "TreePath": "C:\\Users\\Hexiv\\Desktop\\MyBehaviorTree.xml",
-        "AutoStart": "False"
-      },
       "RestartPolicy": 1,
       "MaxRetries": 3,
       "RestartDelaySeconds": 5
@@ -58,7 +28,25 @@
       "RestartDelaySeconds": 5
     },
     {
-      "NodeName": "scanner_1",
+      "NodeName": "dispenser_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedDispenserNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "vision_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedVisionNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "scanner_y1",
       "AssemblyName": "ScrewMachine.HAL",
       "TypeName": "ScrewMachine.HAL.ScannerNode",
       "Parameters": {},
@@ -67,19 +55,46 @@
       "RestartDelaySeconds": 5
     },
     {
-      "NodeName": "valve_1",
+      "NodeName": "scanner_y2",
       "AssemblyName": "ScrewMachine.HAL",
-      "TypeName": "ScrewMachine.HAL.DispenserValveNode",
+      "TypeName": "ScrewMachine.HAL.ScannerNode",
       "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,
       "RestartDelaySeconds": 5
     },
     {
-      "NodeName": "towerlight_1",
-      "AssemblyName": "ScrewMachine.HAL",
-      "TypeName": "ScrewMachine.HAL.TowerLightNode",
-      "Parameters": {},
+      "NodeName": "brain_dispenser",
+      "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
+      "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Parameters": {
+        "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\Deploy_Build\\CurrentWorkspace\\Config\\Tree_Dispenser.xml",
+        "AutoStart": "False"
+      },
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "brain_y1",
+      "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
+      "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Parameters": {
+        "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\Deploy_Build\\CurrentWorkspace\\Config\\Tree_Y1.xml",
+        "AutoStart": "False"
+      },
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "brain_y2",
+      "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
+      "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Parameters": {
+        "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\Deploy_Build\\CurrentWorkspace\\Config\\Tree_Y2.xml",
+        "AutoStart": "False"
+      },
       "RestartPolicy": 1,
       "MaxRetries": 3,
       "RestartDelaySeconds": 5

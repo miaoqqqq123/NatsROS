@@ -13,8 +13,8 @@
 		<Company>Hexiv Automation</Company>
 		<Description>NatsROS 底层契约库。包含标准的话题 (Topic)、服务 (Service) 和动作 (Action) 数据模型。</Description>
 		<RepositoryUrl>https://your-internal-git-repo/natsros</RepositoryUrl>
-		<AssemblyVersion>1.2026.0819.0</AssemblyVersion>
-		<FileVersion>1.2026.0819.0</FileVersion>
+		<AssemblyVersion>1.2026.0820.0</AssemblyVersion>
+		<FileVersion>1.2026.0820.0</FileVersion>
 		<PlatformTarget>x64</PlatformTarget>
 
 	</PropertyGroup>

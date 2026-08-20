@@ -12,8 +12,8 @@
 		<Authors>Hexiv Platform Team</Authors>
 		<Company>Hexiv Automation</Company>
 		<Description>NatsROS 核心通信引擎。基于 NATS.Net 和 MessagePack，提供工业级的高性能 Pub/Sub、RPC 和分布式生命周期管理。</Description>
-		<AssemblyVersion>1.2026.0819.0</AssemblyVersion>
-		<FileVersion>1.2026.0819.0</FileVersion>
+		<AssemblyVersion>1.2026.0820.0</AssemblyVersion>
+		<FileVersion>1.2026.0820.0</FileVersion>
 		<PlatformTarget>x64</PlatformTarget>
 	</PropertyGroup>
 

@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <BehaviorTree ID="MainTask">
+    <Node type="Hexiv.BehaviorTree.Core.RootNode" Id="6f0fbde1-1113-429e-b9cb-54e0308d0dc7">
+      <Name>任务起点 (Root)</Name>
+      <Children>
+        <Node type="Hexiv.BehaviorTree.Core.SequenceNode" Id="7ccc7cfb-c4a6-4888-a85d-7bb59ec05060">
+          <Name>顺序执行 (Sequence)</Name>
+          <Children>
+            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.AcceptWorkOrderAction" Id="b203250d-8b03-49fc-b141-12a3076c723a">
+              <Name>3. 挂起接收订单 (点胶机用)</Name>
+            </Node>
+            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.VisionLocateAction" Id="c26823ad-2949-45cb-b72b-ed58a3239dcc">
+              <Name>1. 视觉 Mark 定位</Name>
+            </Node>
+            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.DispenseRectAction" Id="fb151ca2-e14a-4848-84e5-4f0d45f75dd0">
+              <Name>2. 纠偏与矩形点胶</Name>
+            </Node>
+            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.ReplyWorkOrderAction" Id="228d76be-40dd-4193-a8f2-6e918658c566">
+              <Name>4. 回复加工完成 (点胶机用)</Name>
+            </Node>
+          </Children>
+        </Node>
+      </Children>
+    </Node>
+  </BehaviorTree>
+</root>
