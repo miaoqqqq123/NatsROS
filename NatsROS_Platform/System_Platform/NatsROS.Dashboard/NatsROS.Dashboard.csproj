@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyVersion>1.2026.0609.0</AssemblyVersion>
-    <FileVersion>1.2026.0609.0</FileVersion>
+    <AssemblyVersion>1.2026.0819.0</AssemblyVersion>
+    <FileVersion>1.2026.0819.0</FileVersion>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
@@ -23,7 +23,7 @@
     <PackageReference Include="devexpress.wpf.layoutcontrol" Version="23.2.3" />
     <PackageReference Include="devexpress.wpf.propertygrid" Version="23.2.3" />
     <PackageReference Include="HelixToolkit.Wpf" Version="3.1.2" />
-    <PackageReference Include="MessagePack" Version="3.1.4" />
+    <PackageReference Include="MessagePack" Version="3.1.8" />
     <PackageReference Include="NATS.Net" Version="2.7.3" />
   </ItemGroup>
 

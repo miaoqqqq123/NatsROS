@@ -8,7 +8,9 @@
   <Folder Name="/Machine_Project/03_L1_MissionControl/">
     <Project Path="Machine_Project/03_L1_MissionControl/ScrewMachine.MissionControl.MainDirector/ScrewMachine.MissionControl.MainDirector.csproj" />
   </Folder>
-  <Folder Name="/Machine_Project/04_UserInterfaces/" />
+  <Folder Name="/Machine_Project/04_UserInterfaces/">
+    <Project Path="Machine_Project/04_UserInterfaces/ScrewMachine.UI/ScrewMachine.UI.csproj" Id="c7c04683-077a-4d4d-ba71-89ccc228d710" />
+  </Folder>
   <Folder Name="/NatsROS_Platform/" />
   <Folder Name="/NatsROS_Platform/Framework_Core/">
     <Project Path="NatsROS_Platform/Framework_Core/NatsROS.Core/NatsROS.Core.csproj" />

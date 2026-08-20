@@ -1,0 +1,21 @@
+{
+  "brain": {
+    "TreePath": "C:\\Users\\Hexiv\\Desktop\\MyBehaviorTree.xml",
+    "AutoStart": "False"
+  },
+  "towerlight_1": {
+    "RedPin": "0",
+    "YellowPin": "1",
+    "GreenPin": "2",
+    "BoardNodeName": "motionboard_1"
+  },
+  "valve_1": {
+    "ValveIoPin": "5",
+    "OpenDelayMs": "50",
+    "CloseDelayMs": "100",
+    "BoardNodeName": "motionboard_1"
+  },
+  "scanner_1": {
+    "BarcodePrefix": "PN"
+  }
+}

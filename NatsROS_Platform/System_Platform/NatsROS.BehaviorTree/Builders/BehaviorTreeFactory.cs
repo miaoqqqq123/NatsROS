@@ -24,8 +24,52 @@ namespace Hexiv.BehaviorTree.Builders
 
         private void ScanAvailableNodes()
         {
+            //var types = AppDomain.CurrentDomain.GetAssemblies()
+            //    .SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } })
+            //    .Where(t => typeof(BehaviorTreeNode).IsAssignableFrom(t) && !t.IsAbstract);
+
             var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } })
+                // ==========================================
+                // 【核心性能优化 1：白名单拦截】
+                // 绝对不去碰第三方库！只扫描包含我们自己前缀的业务 DLL
+                // ==========================================
+                .Where(a =>
+                {
+                    string asmName = a.GetName().Name ?? "";
+
+                    // 1. 白名单：只看我们自己前缀的业务 DLL
+                    bool isOurCode = asmName.StartsWith("NatsROS") ||
+                                     asmName.StartsWith("ScrewMachine") ||
+                                     asmName.StartsWith("Hexiv");
+
+                    // 2. 黑名单：绝对不扫 UI 程序和外壳！(防止缺少 WPF 依赖报错)
+                    bool isNotUI = !asmName.Contains("Dashboard") &&
+                                   !asmName.Contains("Hmi") &&
+                                   !asmName.Contains("Launcher") &&
+                                   !asmName.Contains("UI") &&
+                                   !asmName.Contains("Container");
+
+                    return isOurCode && isNotUI;
+                })
+                .SelectMany(a =>
+                {
+                    try
+                    {
+                        return a.GetTypes();
+                    }
+                    // ==========================================
+                    // 【核心性能优化 2：残缺提取黑魔法】
+                    // 哪怕自己的 DLL 里有个别类少依赖，也把成功的抢救出来！
+                    // ==========================================
+                    catch (ReflectionTypeLoadException ex)
+                    {
+                        return ex.Types.Where(t => t != null).ToArray()!;
+                    }
+                    catch
+                    {
+                        return Type.EmptyTypes;
+                    }
+                })
                 .Where(t => typeof(BehaviorTreeNode).IsAssignableFrom(t) && !t.IsAbstract);
 
             foreach (var t in types)

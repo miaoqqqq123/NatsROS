@@ -57,21 +57,35 @@ namespace ScrewMachine.MissionControl.MainDirector
 
         protected override Task OnConfigureAsync(CancellationToken ct)
         {
-            // 从 Parameter Server 同步参数到 C# 属性
-            TreePath = Parameters.GetLocal("TreePath", "");
-            //AutoStart = bool.Parse(Parameters.GetLocal("AutoStart", "True"));
+            // 1. 从 Parameter Server 获取参数
+            TreePath = Parameters.GetLocal("TreePath", "MainTree.xml");
+
+            // 【修复】：恢复 AutoStart 的读取，如果没配默认给 False（等 HMI 发指令才启动）
+            AutoStart = bool.Parse(Parameters.GetLocal("AutoStart", "False"));
 
             _statePublisher = CreatePublisher<BtStateMsg>("brain.bt.state", RosQosProfile.SensorData);
 
-            if (!string.IsNullOrEmpty(TreePath) && File.Exists(TreePath))
+            if (!string.IsNullOrEmpty(TreePath))
             {
-                Logger.LogInformation("正在从本地磁盘加载初始行为树: {Path}", TreePath);
-                LoadTreeFromXml(File.ReadAllText(TreePath));
+                // ==========================================
+                // 【核心修复】：使用全局路径大管家，去当前工作区的 BehaviorTrees 目录下找！
+                // ==========================================
+                string btDir = NatsROS.Core.Environment.WorkspaceManager.GetBehaviorTreesPath();
+
+                // 兼容性处理：如果传进来的是绝对路径就直接用，否则拼接标准工作区路径
+                string fullPath = Path.IsPathRooted(TreePath) ? TreePath : Path.Combine(btDir, TreePath);
+
+                if (File.Exists(fullPath))
+                {
+                    Logger.LogInformation("🧠 正在从当前工程环境加载行为树: {Path}", fullPath);
+                    LoadTreeFromXml(File.ReadAllText(fullPath));
+                }
+                else
+                {
+                    Logger.LogWarning("⚠️ 未找到行为树剧本文件: {Path}。大脑进入空载待命模式。", fullPath);
+                }
             }
-            else
-            {
-                Logger.LogWarning("未配置初始 TreePath 或文件不存在。大脑进入空载待命模式。");
-            }
+
 
             return Task.CompletedTask;
         }

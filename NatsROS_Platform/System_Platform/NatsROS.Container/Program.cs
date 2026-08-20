@@ -127,7 +127,7 @@ namespace NatsROS.Container
             // ==========================================
             var nodeManager = host.Services.GetRequiredService<DynamicNodeManager>();
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
-            string launchFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "launch.json");
+            string launchFile = NatsROS.Core.Environment.WorkspaceManager.GetConfigPath("launch.json");
 
             if (File.Exists(launchFile))
             {

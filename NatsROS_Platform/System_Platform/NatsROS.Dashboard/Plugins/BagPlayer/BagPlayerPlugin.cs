@@ -9,7 +9,7 @@ namespace NatsROS.Dashboard.Plugins.BagPlayer
     {
         public string RibbonCategory => "开发与调试 (Dev Tools)";
         public string DisplayName => "数据黑匣子 (Bag Player)";
-        public string GlyphPath => "SvgImages/Icon Builder/Security_Video.svg";
+        public string GlyphPath => "SvgImages/HybridDemoIcons/Tiles/HybridDemo_Deferred.svg";
 
         public object CreateView(IServiceProvider serviceProvider)
         {

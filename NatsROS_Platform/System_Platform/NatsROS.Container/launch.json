@@ -1,13 +1,28 @@
 {
   "Nodes": [
     {
-      "NodeName": "brainnode_1",
-      "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
-      "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
-      "Parameters": {
-        "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\NatsROS.Container\\bin\\Debug\\net8.0\\Recipes\\MyBehaviorTree.xml",
-        "AutoStart": "True"
-      },
+      "NodeName": "simulatedvisionnode_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedVisionNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "simulatedaxisnode_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedAxisNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "mockmesnode_1",
+      "AssemblyName": "NatsROS.KernelNodes",
+      "TypeName": "NatsROS.KernelNodes.MockMesNode",
+      "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,
       "RestartDelaySeconds": 5

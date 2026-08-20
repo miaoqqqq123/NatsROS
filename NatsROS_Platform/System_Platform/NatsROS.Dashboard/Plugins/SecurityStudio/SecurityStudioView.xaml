@@ -7,9 +7,9 @@
     xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
     xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
     xmlns:sec="clr-namespace:NatsROS.Dashboard.Security"
-    Background="#1E1E1E"
-    sec:PermissionGuard.Require="Security.Manage">
-    <!-- 上面这行是核心！如果登录的人没有 Security.Manage 权限，整个界面自动变灰禁用！ -->
+    sec:PermissionGuard.Require="Security.Manage"
+    Background="#1E1E1E">
+    <!--  上面这行是核心！如果登录的人没有 Security.Manage 权限，整个界面自动变灰禁用！  -->
 
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
@@ -18,24 +18,62 @@
             <ColumnDefinition Width="1.5*" />
         </Grid.ColumnDefinitions>
 
-        <!-- 左侧：用户账号管理 -->
-        <dxlc:LayoutGroup Grid.Column="0" Header="👥 员工账号管理 (Users)" View="GroupBox" Orientation="Vertical">
-            <dxlc:LayoutGroup Orientation="Horizontal" Height="35" Margin="0,0,0,10">
-                <dx:SimpleButton x:Name="BtnNewUser" Content="➕ 新增用户" Width="100" Background="#FF00838F" Foreground="White" Click="BtnNewUser_Click"/>
-                <dx:SimpleButton x:Name="BtnSaveUser" Content="💾 保存" Width="80" Margin="10,0,0,0" Background="#FF2E7D32" Foreground="White" Click="BtnSaveUser_Click"/>
-                <dx:SimpleButton x:Name="BtnDelUser" Content="❌ 删除" Width="80" Margin="10,0,0,0" Background="#FFC62828" Foreground="White" Click="BtnDelUser_Click"/>
+        <!--  左侧：用户账号管理  -->
+        <dxlc:LayoutGroup
+            Grid.Column="0"
+            Header="👥 员工账号管理 (Users)"
+            Orientation="Vertical"
+            View="GroupBox">
+            <dxlc:LayoutGroup
+                Height="35"
+                Margin="0,0,0,10"
+                Orientation="Horizontal">
+                <dx:SimpleButton
+                    x:Name="BtnNewUser"
+                    Width="100"
+                    Background="#FF00838F"
+                    Click="BtnNewUser_Click"
+                    Content="➕ 新增用户"
+                    Foreground="White" />
+                <dx:SimpleButton
+                    x:Name="BtnSaveUser"
+                    Width="80"
+                    Margin="10,0,0,0"
+                    Background="#FF2E7D32"
+                    Click="BtnSaveUser_Click"
+                    Content="💾 保存"
+                    Foreground="White" />
+                <dx:SimpleButton
+                    x:Name="BtnDelUser"
+                    Width="80"
+                    Margin="10,0,0,0"
+                    Background="#FFC62828"
+                    Click="BtnDelUser_Click"
+                    Content="❌ 删除"
+                    Foreground="White" />
             </dxlc:LayoutGroup>
 
-            <dxg:GridControl x:Name="GridUsers" Height="200" AutoGenerateColumns="None" SelectedItemChanged="GridUsers_SelectedItemChanged">
+            <dxg:GridControl
+                x:Name="GridUsers"
+                Height="200"
+                AutoGenerateColumns="None"
+                SelectedItemChanged="GridUsers_SelectedItemChanged">
                 <dxg:GridControl.View>
-                    <dxg:TableView AllowEditing="False" ShowGroupPanel="False" NavigationStyle="Row"/>
+                    <dxg:TableView
+                        AllowEditing="False"
+                        NavigationStyle="Row"
+                        ShowGroupPanel="False" />
                 </dxg:GridControl.View>
-                <dxg:GridColumn FieldName="Username" Header="登录账号"/>
-                <dxg:GridColumn FieldName="DisplayName" Header="姓名"/>
-                <dxg:GridColumn FieldName="Role" Header="所属角色"/>
+                <dxg:GridColumn FieldName="Username" Header="登录账号" />
+                <dxg:GridColumn FieldName="DisplayName" Header="姓名" />
+                <dxg:GridColumn FieldName="Role" Header="所属角色" />
             </dxg:GridControl>
 
-            <dxlc:LayoutGroup View="GroupBox" Header="账号编辑" Margin="0,10,0,0" Orientation="Vertical">
+            <dxlc:LayoutGroup
+                Margin="0,10,0,0"
+                Header="账号编辑"
+                Orientation="Vertical"
+                View="GroupBox">
                 <dxlc:LayoutItem Label="登录账号:">
                     <dxe:TextEdit x:Name="TxtUsername" />
                 </dxlc:LayoutItem>
@@ -43,7 +81,7 @@
                     <dxe:TextEdit x:Name="TxtDisplayName" />
                 </dxlc:LayoutItem>
                 <dxlc:LayoutItem Label="所属角色:">
-                    <dxe:ComboBoxEdit x:Name="CboUserRole" IsTextEditable="False"/>
+                    <dxe:ComboBoxEdit x:Name="CboUserRole" IsTextEditable="False" />
                 </dxlc:LayoutItem>
                 <dxlc:LayoutItem Label="重置密码:">
                     <dxe:PasswordBoxEdit x:Name="TxtNewPassword" NullText="不修改请留空" />
@@ -51,31 +89,79 @@
             </dxlc:LayoutGroup>
         </dxlc:LayoutGroup>
 
-        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="Transparent"/>
+        <GridSplitter
+            Grid.Column="1"
+            HorizontalAlignment="Stretch"
+            Background="Transparent" />
 
-        <!-- 右侧：角色权限点矩阵 -->
-        <dxlc:LayoutGroup Grid.Column="2" Header="🔐 角色与权限分配矩阵 (Roles &amp; Permissions)" View="GroupBox" Orientation="Vertical">
-            <dxlc:LayoutGroup Orientation="Horizontal" Height="35" Margin="0,0,0,10">
-                <TextBlock Text="选择角色: " Foreground="LightGray" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <dxe:ComboBoxEdit x:Name="CboRoleSelect" Width="200" IsTextEditable="True" SelectedIndexChanged="CboRoleSelect_SelectedIndexChanged"/>
-                <dx:SimpleButton x:Name="BtnSaveRole" Content="💾 保存权限配置" Width="150" Margin="20,0,0,0" Background="#FF2E7D32" Foreground="White" FontWeight="Bold" Click="BtnSaveRole_Click"/>
-                <dx:SimpleButton x:Name="BtnDelRole" Content="❌ 移除该角色" Width="100" Margin="10,0,0,0" Background="#FFC62828" Foreground="White" Click="BtnDelRole_Click"/>
+        <!--  右侧：角色权限点矩阵  -->
+        <dxlc:LayoutGroup
+            Grid.Column="2"
+            Header="🔐 角色与权限分配矩阵 (Roles &amp; Permissions)"
+            Orientation="Vertical"
+            View="GroupBox">
+            <dxlc:LayoutGroup
+                Height="35"
+                Margin="0,0,0,10"
+                Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,10,0"
+                    VerticalAlignment="Center"
+                    Foreground="LightGray"
+                    Text="选择角色: " />
+                <dxe:ComboBoxEdit
+                    x:Name="CboRoleSelect"
+                    Width="200"
+                    IsTextEditable="True"
+                    SelectedIndexChanged="CboRoleSelect_SelectedIndexChanged" />
+                <dx:SimpleButton
+                    x:Name="BtnSaveRole"
+                    Width="150"
+                    Margin="20,0,0,0"
+                    Background="#FF2E7D32"
+                    Click="BtnSaveRole_Click"
+                    Content="💾 保存权限配置"
+                    FontWeight="Bold"
+                    Foreground="White" />
+                <dx:SimpleButton
+                    x:Name="BtnDelRole"
+                    Width="100"
+                    Margin="10,0,0,0"
+                    Background="#FFC62828"
+                    Click="BtnDelRole_Click"
+                    Content="❌ 移除该角色"
+                    Foreground="White" />
             </dxlc:LayoutGroup>
 
-            <!-- 核心：动态权限打钩清单 -->
+            <!--  核心：动态权限打钩清单  -->
             <dxg:GridControl x:Name="GridPermissions" AutoGenerateColumns="None">
                 <dxg:GridControl.View>
-                    <!-- 开启按 Category 分组 -->
-                    <dxg:TableView ShowGroupPanel="False" NavigationStyle="Cell"/>
+                    <!--  开启按 Category 分组  -->
+                    <dxg:TableView NavigationStyle="Cell" ShowGroupPanel="False" />
                 </dxg:GridControl.View>
-                <dxg:GridColumn FieldName="Category" GroupIndex="0" Header="模块"/>
-                <dxg:GridColumn FieldName="IsGranted" Header="授权" Width="60" AllowEditing="True">
+                <dxg:GridColumn
+                    FieldName="Category"
+                    GroupIndex="0"
+                    Header="模块" />
+                <dxg:GridColumn
+                    Width="60"
+                    AllowEditing="True"
+                    FieldName="IsGranted"
+                    Header="授权">
                     <dxg:GridColumn.EditSettings>
-                        <dxe:CheckEditSettings/>
+                        <dxe:CheckEditSettings />
                     </dxg:GridColumn.EditSettings>
                 </dxg:GridColumn>
-                <dxg:GridColumn FieldName="Code" Header="权限特征码" Width="180" AllowEditing="False"/>
-                <dxg:GridColumn FieldName="Description" Header="说明描述" Width="*" AllowEditing="False"/>
+                <dxg:GridColumn
+                    Width="180"
+                    AllowEditing="False"
+                    FieldName="Code"
+                    Header="权限特征码" />
+                <dxg:GridColumn
+                    Width="*"
+                    AllowEditing="False"
+                    FieldName="Description"
+                    Header="说明描述" />
             </dxg:GridControl>
         </dxlc:LayoutGroup>
     </Grid>

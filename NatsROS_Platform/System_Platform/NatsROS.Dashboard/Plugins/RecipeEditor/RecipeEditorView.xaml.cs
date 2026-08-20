@@ -31,7 +31,7 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
     /// <summary>
     /// RecipeEditorView.xaml 的交互逻辑
     /// </summary>
-    public partial class RecipeEditorView : UserControl
+    public partial class RecipeEditorView : UserControl, IDisposable
     {
         private readonly INatsClient _nats;
         public ObservableCollection<AvailableNodeInfo> AvailableNodes { get; set; } = new();
@@ -278,6 +278,11 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
                     buttonEdit.EditValue = dlg.FileName;
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

@@ -14,7 +14,7 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
 {
     public class ParamItem { public string Key { get; set; } = ""; public string Value { get; set; } = ""; }
 
-    public partial class RecipeStudioView : UserControl
+    public partial class RecipeStudioView : UserControl, IDisposable
     {
         private readonly RosServiceClient<GetRecipesReq, GetRecipesRes> _getRecipesClient;
         private readonly RosServiceClient<SaveRecipeReq, SaveRecipeRes> _saveClient;
@@ -209,6 +209,11 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
                 }
                 catch (Exception ex) { MessageBox.Show(ex.Message); }
             }
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

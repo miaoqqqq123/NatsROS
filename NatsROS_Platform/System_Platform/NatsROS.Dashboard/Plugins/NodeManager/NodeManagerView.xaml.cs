@@ -14,7 +14,7 @@ using UserControl = System.Windows.Controls.UserControl;
 
 namespace NatsROS.Dashboard.Plugins.NodeManager
 {
-    public partial class NodeManagerView : UserControl
+    public partial class NodeManagerView : UserControl, IDisposable
     {
         private readonly INatsClient _nats;
         public ObservableCollection<AvailableNodeInfo> AvailableNodes { get; set; } = new();
@@ -137,6 +137,11 @@ namespace NatsROS.Dashboard.Plugins.NodeManager
             }
             catch { }
             finally { BtnApplyParams.IsEnabled = true; }
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

@@ -22,10 +22,23 @@ namespace NatsROS.Dashboard.Plugins.ProjectManager
         public string LastModified { get; set; } = "";
     }
 
-    public partial class ProjectManagerView : UserControl
+    public class GlobalAppConfig
+    {
+        public string SystemName { get; set; } = "NatsROS";
+        public string LastProjectName { get; set; } = "";
+        public string UiMode { get; set; } = "Dashboard";
+        public bool DebugMode { get; set; } = false;
+    }
+
+
+    public partial class ProjectManagerView : UserControl, IDisposable
     {
         private readonly INatsClient _nats;
         public ObservableCollection<ProjectItem> Projects { get; set; } = new();
+
+        private string _appConfigPath = "";
+        private GlobalAppConfig _currentAppConfig = new();
+        private bool _isInitializing = true; // 防止 UI 绑定时触发循环保存
 
         public ProjectManagerView(INatsClient nats)
         {
@@ -33,7 +46,25 @@ namespace NatsROS.Dashboard.Plugins.ProjectManager
             _nats = nats;
             GridProjects.ItemsSource = Projects;
 
+            //加载 app_config.json
+            _appConfigPath = Path.Combine(WorkspaceManager.LocalDataPath, "..", "bin", "app_config.json");
+            LoadAppConfig();
+
             Loaded += (s, e) => RefreshProjectList();
+        }
+
+        private void LoadAppConfig()
+        {
+            if (File.Exists(_appConfigPath))
+            {
+                try
+                {
+                    _currentAppConfig = System.Text.Json.JsonSerializer.Deserialize<GlobalAppConfig>(File.ReadAllText(_appConfigPath)) ?? new();
+                    TogDebugMode.IsChecked = _currentAppConfig.DebugMode;
+                }
+                catch { }
+            }
+            _isInitializing = false;
         }
 
         private void BtnRefresh_Click(object sender, RoutedEventArgs e) => RefreshProjectList();
@@ -141,6 +172,26 @@ namespace NatsROS.Dashboard.Plugins.ProjectManager
             }
             catch (Exception ex) { MessageBox.Show($"加载工程失败: {ex.Message}"); }
             finally { BtnLoadProject.IsEnabled = true; }
+        }
+
+        private void TogDebugMode_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+
+            _currentAppConfig.DebugMode = TogDebugMode.IsChecked == true;
+            try
+            {
+                var opts = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
+                File.WriteAllText(_appConfigPath, System.Text.Json.JsonSerializer.Serialize(_currentAppConfig, opts));
+
+                MessageBox.Show("调试模式已切换！\n将在下次启动系统时生效。", "配置已保存", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex) { MessageBox.Show("保存配置失败: " + ex.Message); }
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

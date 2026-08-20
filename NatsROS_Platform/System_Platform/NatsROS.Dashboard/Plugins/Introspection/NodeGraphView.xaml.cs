@@ -14,7 +14,7 @@ using UserControl = System.Windows.Controls.UserControl;
 
 namespace NatsROS.Dashboard.Plugins.Introspection
 {
-    public partial class NodeGraphView : UserControl
+    public partial class NodeGraphView : UserControl, IDisposable
     {
         private readonly INatsClient _nats;
 
@@ -101,6 +101,11 @@ namespace NatsROS.Dashboard.Plugins.Introspection
         {
             if (!dict.TryGetValue(name, out var shape)) { shape = new DiagramShape { Content = name, Shape = BasicShapes.Diamond, Width = 220, Height = 55, Background = new SolidColorBrush(Colors.Thistle), Foreground = new SolidColorBrush(Colors.Black), Stroke = new SolidColorBrush(Colors.Purple), StrokeThickness = 1 }; dict[name] = shape; DiagramGraph.Items.Add(shape); }
             return shape;
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

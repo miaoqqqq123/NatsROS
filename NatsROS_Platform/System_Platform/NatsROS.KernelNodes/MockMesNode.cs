@@ -17,7 +17,7 @@ namespace NatsROS.KernelNodes
         protected override Task OnConfigureAsync(CancellationToken ct)
         {
             // 数据库存放在运行目录下
-            _dbFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "local_mes_db.json");
+            _dbFilePath = NatsROS.Core.Environment.WorkspaceManager.GetLocalDatabasePath("local_mes_db.json");
             if (File.Exists(_dbFilePath))
             {
                 try

@@ -10,7 +10,7 @@ using UserControl = System.Windows.Controls.UserControl;
 
 namespace NatsROS.Dashboard.Plugins.MesReport
 {
-    public partial class MesReportView : UserControl
+    public partial class MesReportView : UserControl, IDisposable
     {
         private readonly RosServiceClient<GetRecordsReq, GetRecordsRes> _queryClient;
 
@@ -53,6 +53,11 @@ namespace NatsROS.Dashboard.Plugins.MesReport
             {
                 MessageBox.Show($"拉取 MES 数据失败，请确保本地 MES 节点已启动。错误: {ex.Message}");
             }
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

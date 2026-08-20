@@ -64,6 +64,9 @@ namespace NatsROS.Dashboard
                     disposablePlugin.Dispose();
                     AppendLog("SYSTEM", $"🧹 插件资源已安全释放 ({panel.Caption})", Colors.Gray);
                 }
+
+                // 【核心修复】：清空引用，彻底释放内存，给下次“复活”腾出空壳！
+                panel.Content = null;
             }
         }
 
@@ -406,6 +409,16 @@ namespace NatsROS.Dashboard
 
                 if (existingPanel != null)
                 {
+                    // 【核心修复】：如果面板被用户点击 X 关闭了，它会被标记为 IsClosed
+                    if (existingPanel.IsClosed || existingPanel.Content == null)
+                    {
+                        // 重新生成 UI 灵魂，注入这个旧壳子里！
+                        existingPanel.Content = plugin.CreateView(App.ServiceProvider);
+
+                        // 把它从“隐藏回收站”里复活！(DevExpress 会神奇地把它放回上次用户拖拽的位置！)
+                        existingPanel.Closed = false;
+                    }
+
                     DockManager.Activate(existingPanel);
                     return;
                 }

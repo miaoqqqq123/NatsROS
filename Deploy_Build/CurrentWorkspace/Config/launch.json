@@ -1,0 +1,88 @@
+{
+  "Nodes": [
+    {
+      "NodeName": "simulatedvisionnode_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedVisionNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "simulatedaxisnode_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedAxisNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "mockmesnode_1",
+      "AssemblyName": "NatsROS.KernelNodes",
+      "TypeName": "NatsROS.KernelNodes.MockMesNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "simulateddispensernode_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedDispenserNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "brain",
+      "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
+      "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Parameters": {
+        "TreePath": "C:\\Users\\Hexiv\\Desktop\\MyBehaviorTree.xml",
+        "AutoStart": "False"
+      },
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "motionboard_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.MotionControlBoardNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "scanner_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.ScannerNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "valve_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.DispenserValveNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "towerlight_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.TowerLightNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    }
+  ]
+}

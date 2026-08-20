@@ -15,15 +15,22 @@ public class RosServiceClient<TReq, TRes>(INatsClient nats, string serviceName)
 
     public async Task<TRes?> CallAsync(TReq request, TimeSpan timeout = default, CancellationToken ct = default)
     {
-        var actualTimeout = timeout == default ? TimeSpan.FromSeconds(5) : timeout;
-        var reply = await nats.RequestAsync<TReq, TRes>(
-            subject: ServiceName,
-            data: request,
-            requestOpts: new NatsPubOpts { WaitUntilSent = true },
-            replyOpts: new NatsSubOpts { Timeout = actualTimeout },
-            cancellationToken: ct);
-
-        return reply.Data;
+        try
+        {
+            var actualTimeout = timeout == default ? TimeSpan.FromSeconds(5) : timeout;
+            var reply = await nats.RequestAsync<TReq, TRes>(
+                subject: ServiceName,
+                data: request,
+                requestOpts: new NatsPubOpts { WaitUntilSent = true },
+                replyOpts: new NatsSubOpts { Timeout = actualTimeout },
+                cancellationToken: ct);
+            return reply.Data;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
 

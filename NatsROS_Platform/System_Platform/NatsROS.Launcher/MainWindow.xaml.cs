@@ -16,7 +16,9 @@ namespace NatsROS.Launcher
     { 
         public string SystemName { get; set; } = "NatsROS"; 
         public string LastProjectName { get; set; } = ""; 
-        public string UiMode { get; set; } = "Dashboard"; 
+        public string UiMode { get; set; } = "Dashboard";
+
+        public bool DebugMode { get; set; } = true;
     }
 
     public partial class MainWindow : DevExpress.Xpf.Core.ThemedWindow
@@ -56,7 +58,7 @@ namespace NatsROS.Launcher
             string binDir = AppDomain.CurrentDomain.BaseDirectory;
 
             // 2. 读取开机配置
-            string configPath = Path.Combine(rootDir, "app_config.json");
+            string configPath = Path.Combine(binDir, "app_config.json");
             if (File.Exists(configPath)) _config = JsonSerializer.Deserialize<AppConfig>(File.ReadAllText(configPath)) ?? new();
 
             TxtSysName.Text = _config.SystemName;
@@ -91,7 +93,25 @@ namespace NatsROS.Launcher
             // ==========================================
             UpdateStatus(50, "[2/4] 启动 NATS 毫秒级总线...");
             string natsPath = Path.Combine(binDir, "nats-server.exe");
-            if (File.Exists(natsPath)) StartDaemon(natsPath, "-js");
+
+            // 【强化防呆】：如果没有 NATS，整个系统根本没法玩，直接抛出致命异常！
+            if (!File.Exists(natsPath))
+            {
+                throw new FileNotFoundException($"找不到核心通信总线！\n请确保 nats-server.exe 文件存在于 Bin 目录下。\n路径: {natsPath}");
+            }
+
+            // StartDaemon 现在会返回是否是“新启动”的
+            bool isNatsNewStarted = StartDaemon(natsPath, "-js", _config.DebugMode);
+            if (isNatsNewStarted)
+            {
+                // 如果是刚启动的，必须等它 1.5 秒完成端口监听，否则后面的程序连不上会崩
+                await Task.Delay(1500);
+            }
+            else
+            {
+                // 如果检测到后台已经有 nats-server 在跑了，直接秒过
+                LoggerOrDebug("NATS 总线已在后台运行中...");
+            }
             await Task.Delay(1000); // 必须等 NATS 端口监听成功
 
             // ==========================================
@@ -99,14 +119,21 @@ namespace NatsROS.Launcher
             // ==========================================
             UpdateStatus(80, "[3/4] 唤醒 NatsROS 核心中枢与管家...");
             string containerPath = Path.Combine(binDir, "NatsROS.Container.exe");
-            if (File.Exists(containerPath)) StartDaemon(containerPath, "");
-            await Task.Delay(1500); // 等待四大管家与业务节点注册完毕
+            if (!File.Exists(containerPath)) throw new FileNotFoundException($"找不到微服务母体程序: {containerPath}");
+
+            StartDaemon(containerPath, "", _config.DebugMode);
+            await Task.Delay(1500); // 必须等待 Container 把各大管家全都初始化完毕！
 
             // ==========================================
             // 步骤四：拉起前端 UI (并移交生死控制权)
             // ==========================================
             UpdateStatus(100, "[4/4] 启动用户交互终端...");
-            string uiExeName = _config.UiMode.Equals("HMI", StringComparison.OrdinalIgnoreCase) ? "NatsROS.Hmi.exe" : "NatsROS.Dashboard.exe";
+            string uiExeName = _config.UiMode;
+            if (uiExeName.Equals("HMI", StringComparison.OrdinalIgnoreCase))
+                uiExeName = "NatsROS.Hmi.exe";
+            else if (uiExeName.Equals("Dashboard", StringComparison.OrdinalIgnoreCase))
+                uiExeName = "NatsROS.Dashboard.exe"; 
+
             string uiPath = Path.Combine(binDir, uiExeName);
 
             if (File.Exists(uiPath))
@@ -140,25 +167,39 @@ namespace NatsROS.Launcher
         }
 
         /// <summary>
-        /// 启动进程
+        /// 强化版：启动进程并返回是否真正执行了启动动作
         /// </summary>
-        /// <param name="exePath"></param>
-        /// <param name="args"></param>
-        private void StartDaemon(string exePath, string args)
+        private bool StartDaemon(string exePath, string args, bool showConsole)
         {
-            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(exePath)).Length > 0) return; // 防止重复启动
+            string processName = Path.GetFileNameWithoutExtension(exePath);
+
+            // 检查是否已经在运行
+            if (Process.GetProcessesByName(processName).Length > 0)
+            {
+                return false; // 已经在跑了，不重复拉起
+            }
 
             var psi = new ProcessStartInfo
             {
                 FileName = exePath,
                 Arguments = args,
                 WorkingDirectory = Path.GetDirectoryName(exePath),
-                UseShellExecute = false,
-                CreateNoWindow = true, // 彻底隐藏黑框！
-                WindowStyle = ProcessWindowStyle.Hidden
+
+                //如果是 Debug 模式，开启独立窗口显示输出！
+                UseShellExecute = showConsole,
+                CreateNoWindow = !showConsole,
+                WindowStyle = showConsole ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden
             };
+
             var p = Process.Start(psi);
-            if (p != null) _daemons.Add(p);
+            if (p != null) _daemons.Add(p); // 记入生死簿
+
+            return true;
+        }
+
+        private void LoggerOrDebug(string msg)
+        {
+            System.Diagnostics.Debug.WriteLine(msg);
         }
 
         /// <summary>

@@ -26,7 +26,7 @@ namespace NatsROS.Dashboard.Plugins.SecurityStudio
         protected void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    public partial class SecurityStudioView : UserControl
+    public partial class SecurityStudioView : UserControl, IDisposable
     {
         private readonly RosServiceClient<GetUsersReq, GetUsersRes> _getUsersClient;
         private readonly RosServiceClient<SaveUserReq, SaveUserRes> _saveUserClient;
@@ -180,6 +180,11 @@ namespace NatsROS.Dashboard.Plugins.SecurityStudio
             if (res != null && !res.Success) MessageBox.Show(res.Message);
             await LoadAllDataAsync();
             CboRoleSelect.Text = ""; _permissionItems.Clear();
+        }
+
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

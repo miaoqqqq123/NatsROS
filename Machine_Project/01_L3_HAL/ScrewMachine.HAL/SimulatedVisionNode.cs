@@ -27,7 +27,7 @@ namespace ScrewMachine.HAL
                 await Task.Delay(500, stoppingToken); // 模拟耗时
 
                 // 【核心逻辑】：30% 概率触发视觉丢失故障！
-                if (Random.Shared.NextDouble() < 0.8)
+                if (Random.Shared.NextDouble() < 0.3)
                 {
                     Logger.LogWarning("⚠️ [模拟视觉异常] 光线反光，无法提取 Mark 点轮廓！");
 

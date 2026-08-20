@@ -130,6 +130,22 @@
                 Foreground="#FFC62828"
                 Text="警告：加载新工程将覆盖 CurrentWorkspace 下的所有配置与行为树！"
                 TextWrapping="Wrap" />
+
+            <Separator Margin="0,30,0,15" Background="#444" />
+            <TextBlock
+                Margin="0,0,0,10"
+                FontSize="14"
+                Foreground="LightGray"
+                Text="开发者与实施选项 (Developer Options)" />
+
+            <dxe:ToggleSwitch
+                x:Name="TogDebugMode"
+                Checked="TogDebugMode_CheckedChanged"
+                Content="🐛 开启后台进程调试终端 (需重启)"
+                FontSize="14"
+                FontWeight="Bold"
+                Foreground="Orange"
+                Unchecked="TogDebugMode_CheckedChanged" />
         </dxlc:LayoutGroup>
     </Grid>
 </UserControl>

@@ -10,7 +10,7 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTreeEditor
         public string RibbonCategory => "系统核心 (System Core)";
         public string DisplayName => "行为树编辑器 (BT Studio)";
         // 使用一个代表流程或结构的图标
-        public string GlyphPath => "SvgImages/DiagramIcons/ShapeArrowVertical.svg";
+        public string GlyphPath => "SvgImages/DiagramIcons/ReLayoutParts.svg";
 
         public object CreateView(IServiceProvider serviceProvider)
         {
