@@ -66,6 +66,12 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
                     // 这会导致大脑的 _nodeStates 字典冲突。加上随机前缀完美解决。
                     string prefix = Guid.NewGuid().ToString("N").Substring(0, 5);
                     RegenerateIds(_subTreeRoot, prefix);
+
+                    // 如果当前节点已经有了汇报器，立刻传给刚出生的子树！
+                    if (this.Reporter != null)
+                    {
+                        _subTreeRoot.SetReporter(this.Reporter);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -110,6 +116,13 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
         {
             base.Halt();
             _subTreeRoot?.Halt(); // 复位主树时，把子树的状态灯也全部熄灭
+        }
+
+
+        public override void SetReporter(Action<string, BtNodeStatus> reporter)
+        {
+            base.SetReporter(reporter);
+            _subTreeRoot?.SetReporter(reporter);
         }
     }
 }

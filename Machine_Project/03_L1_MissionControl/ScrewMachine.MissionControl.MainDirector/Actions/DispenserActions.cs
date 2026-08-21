@@ -102,12 +102,18 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
     [BtNode(DisplayName = "3. 上传 MES 记录", Category = "点胶工艺", Description = "点胶结束后，将结果发送给 MES 节点")]
     public class UploadMesAction : BtActionBase
     {
+        // 由工艺员在界面上决定把数据发给谁
+        [BtProp(DisplayName = "目标 MES 节点名", DefaultValue = "mockmesnode_1")]
+        public string MesNodeName { get; set; } = "mockmesnode_1";
+
         public UploadMesAction(string name) : base(name) { }
 
         protected override async Task<BtNodeStatus> OnExecuteAsync(Blackboard blackboard, CancellationToken ct)
         {
             var nats = blackboard.Get<INatsClient>("Nats") ?? throw new Exception("NATS 未注入黑板");
-            var mesClient = new RosServiceClient<UploadRecordReq, UploadRecordRes>(nats, "mockmesnode_1.upload");
+
+            // 动态拼接路由，绝不硬编码！
+            var mesClient = new RosServiceClient<UploadRecordReq, UploadRecordRes>(nats, $"{MesNodeName}.upload");
 
             blackboard.Get("OffsetX", out double ox);
             blackboard.Get("OffsetY", out double oy);
@@ -122,12 +128,13 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
                 Barcode: barcode,
                 Timestamp: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 IsPass: true,
-                CycleTimeSec: 5.5, // 演示时间
+                CycleTimeSec: Random.Shared.NextDouble()*10, // 演示时间
                 OffsetX: ox,
                 OffsetY: oy,
                 Angle: ang
             );
 
+            // 呼叫目标 MES 节点，如果对方不在，这里依然会抛出超时异常 (被父类捕获为 Failure)
             await mesClient.CallAsync(new UploadRecordReq(record), TimeSpan.FromSeconds(2), ct);
             return BtNodeStatus.Success;
         }

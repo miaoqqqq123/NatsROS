@@ -1,4 +1,5 @@
-﻿using NATS.Client.Core;
+﻿using DevExpress.Diagram.Core;
+using NATS.Client.Core;
 using NatsROS.Core.Communication;
 using NatsROS.Messages.Hardware;
 using NatsROS.Messages.Motion;
@@ -157,10 +158,15 @@ namespace NatsROS.Dashboard.Plugins.HalConsole
             BtnTriggerScan.IsEnabled = false;
             TxtScanResult.Text = "⏳ 扫描中...";
             TxtScanResult.Foreground = new SolidColorBrush(Colors.Gray);
+            string nodeName = CboScannerNode.Text.Trim();
+            if (string.IsNullOrEmpty(nodeName))
+            {
+                   nodeName= NODE_SCANNER; // 默认节点
+            }
 
             try
             {
-                var scannerClient = new RosServiceClient<TriggerScanReq, TriggerScanRes>(_nats, $"{NODE_SCANNER}.trigger");
+                var scannerClient = new RosServiceClient<TriggerScanReq, TriggerScanRes>(_nats, $"{nodeName}.trigger");
                 var res = await scannerClient.CallAsync(new TriggerScanReq(3000), TimeSpan.FromSeconds(3));
 
                 if (res != null && res.Success)
@@ -186,5 +192,6 @@ namespace NatsROS.Dashboard.Plugins.HalConsole
         }
 
         public void Dispose() => _cts.Cancel();
+
     }
 }

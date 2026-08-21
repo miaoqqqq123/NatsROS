@@ -23,6 +23,9 @@ namespace Hexiv.BehaviorTree.Core
         [Browsable(false)]
         public BtNodeType NodeType { get; protected set; }
 
+        //每个节点专属的汇报器
+        public Action<string, BtNodeStatus>? Reporter { get; private set; }
+
         private BtNodeStatus _status = BtNodeStatus.Idle;
         public BtNodeStatus Status
         {
@@ -32,14 +35,11 @@ namespace Hexiv.BehaviorTree.Core
                 if (_status != value)
                 {
                     _status = value;
-                    // 【高能核心】：状态发生改变时，触发全局拦截器！
-                    OnNodeTickedHook?.Invoke(this.Id, _status);
+                    // 【修复】：使用节点自己的专属汇报器！
+                    Reporter?.Invoke(this.Id, _status);
                 }
             }
         }
-
-        // 静态全局钩子：极其优雅的解耦方式！引擎本身不需要依赖 NATS。
-        public static Action<string, BtNodeStatus>? OnNodeTickedHook;
 
         protected BehaviorTreeNode(string name, BtNodeType type)
         {
@@ -47,12 +47,33 @@ namespace Hexiv.BehaviorTree.Core
             NodeType = type;
         }
 
-        // 允许外部遍历树结构 (用于画拓扑图)
+
+        /// <summary>
+        /// 【核心黑魔法】：递归向下级节点传染汇报器！
+        /// </summary>
+        /// <param name="reporter"></param>
+        public virtual void SetReporter(Action<string, BtNodeStatus> reporter)
+        {
+            Reporter = reporter;
+            foreach (var child in GetChildren())
+            {
+                child.SetReporter(reporter); // 让所有的子节点也用同一个汇报器
+            }
+        }
+
+        /// <summary>
+        /// 允许外部遍历树结构 (用于画拓扑图)
+        /// </summary>
+        /// <returns></returns>
         public virtual IEnumerable<BehaviorTreeNode> GetChildren() => Array.Empty<BehaviorTreeNode>();
 
-        // ==========================================
-        // 核心执行逻辑：永远受 CancellationToken 控制的异步 Tick 外壳！
-        // ==========================================
+
+        /// <summary>
+        /// 核心执行逻辑：永远受 CancellationToken 控制的异步 Tick 外壳！
+        /// </summary>
+        /// <param name="blackboard"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         public async Task<BtNodeStatus> ExecuteTickAsync(Blackboard blackboard, CancellationToken ct)
         {
             // 防御性急停
@@ -74,10 +95,17 @@ namespace Hexiv.BehaviorTree.Core
             return Status;
         }
 
-        // 留给子类去具体重写的业务逻辑
+        /// <summary>
+        /// 留给子类去具体重写的业务逻辑
+        /// </summary>
+        /// <param name="blackboard"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         protected abstract Task<BtNodeStatus> OnTickAsync(Blackboard blackboard, CancellationToken ct);
 
-        // 重置节点状态 (用于循环或重试)
+        /// <summary>
+        /// 重置节点状态 (用于循环或重试)
+        /// </summary>
         public virtual void Halt()
         {
             Status = BtNodeStatus.Idle;

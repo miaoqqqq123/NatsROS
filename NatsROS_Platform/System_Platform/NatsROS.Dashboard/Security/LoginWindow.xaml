@@ -54,7 +54,8 @@
                 Margin="0,0,0,15"
                 HorizontalContentAlignment="Center"
                 FontSize="16"
-                NullText="请输入用户名 (如: admin)" />
+                NullText="请输入用户名 (如: admin)"
+                Text="admin" />
 
             <dxe:PasswordBoxEdit
                 x:Name="TxtPassword"
@@ -63,7 +64,8 @@
                 Margin="0,0,0,20"
                 HorizontalContentAlignment="Center"
                 FontSize="16"
-                NullText="请输入密码 (默认: 123456)" />
+                NullText="请输入密码 (默认: 123456)"
+                Text="123456" />
 
             <dx:SimpleButton
                 x:Name="BtnLogin"

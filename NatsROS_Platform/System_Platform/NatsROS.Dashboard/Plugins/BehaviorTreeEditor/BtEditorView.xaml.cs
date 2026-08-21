@@ -404,13 +404,22 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTreeEditor
 
             // 将所有带有 Category 或 DefaultValue 的属性，作为 Element 写入！
             var props = nodeObj.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
-                .Where(p => p.CanWrite && (p.GetCustomAttribute<System.ComponentModel.CategoryAttribute>() != null || p.GetCustomAttribute<System.ComponentModel.DefaultValueAttribute>() != null));
+                .Where(p => p.CanWrite && 
+                (p.GetCustomAttribute<System.ComponentModel.CategoryAttribute>() != null || 
+                 p.GetCustomAttribute<System.ComponentModel.DefaultValueAttribute>() != null ||
+                 p.GetCustomAttribute<Hexiv.BehaviorTree.Attributes.BtPropAttribute>() != null
+                 ));
 
             foreach (var p in props)
             {
                 if (p.Name == "Id" || p.Name == "Name") continue;
+
+                // 获取当前右侧 PropertyGrid 修改后的最新值
                 var val = p.GetValue(nodeObj);
-                if (val != null) element.Add(new XElement(p.Name, val.ToString()));
+                if (val != null)
+                {
+                    element.Add(new XElement(p.Name, val.ToString()));
+                }
             }
 
             // 递归处理子节点

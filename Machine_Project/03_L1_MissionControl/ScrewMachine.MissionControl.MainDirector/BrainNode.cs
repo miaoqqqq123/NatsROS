@@ -47,12 +47,7 @@ namespace ScrewMachine.MissionControl.MainDirector
 
         public BrainNode(INatsClient nats, string nodeName, ILogger<BrainNode> logger) : base(nats, nodeName, logger)
         {
-            // 【极其优雅的解耦】：接管引擎原生的全局 Hook
-            BehaviorTreeNode.OnNodeTickedHook = (id, status) =>
-            {
-                _nodeStates[id] = MapStatus(status);
-                _stateDirty = true;
-            };
+
         }
 
         protected override Task OnConfigureAsync(CancellationToken ct)
@@ -118,7 +113,7 @@ namespace ScrewMachine.MissionControl.MainDirector
                 }
             }, stoppingToken);
 
-            var startServer = CreateServer<StartTreeReq, StartTreeRes>("brain.bt.start");
+            var startServer = CreateServer<StartTreeReq, StartTreeRes>($"{Name}.bt.start");
             _ = startServer.ServeAsync(async req =>
             {
                 if (_rootNode == null) return new StartTreeRes(false, "大脑中没有加载行为树配方");
@@ -126,7 +121,7 @@ namespace ScrewMachine.MissionControl.MainDirector
                 return new StartTreeRes(true, "行为树已启动");
             }, stoppingToken);
 
-            var stopServer = CreateServer<StopTreeReq, StopTreeRes>("brain.bt.stop");
+            var stopServer = CreateServer<StopTreeReq, StopTreeRes>($"{Name}.bt.stop");
             _ = stopServer.ServeAsync(async req =>
             {
                 await StopTreeAsync();
@@ -269,6 +264,14 @@ namespace ScrewMachine.MissionControl.MainDirector
             _rootNode = factory.CreateTreeFromXml(xmlContent);
             _blackboard = new Blackboard(); // 清空旧数据
             _nodeStates.Clear();
+
+            //为这棵树里的每一个节点，注入当前大脑专属的字典更新方法！
+            _rootNode.SetReporter((id, status) =>
+            {
+                _nodeStates[id] = MapStatus(status);
+                _stateDirty = true;
+            });
+
             _stateDirty = true;
         }
 

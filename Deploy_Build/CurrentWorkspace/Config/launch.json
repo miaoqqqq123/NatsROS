@@ -98,6 +98,15 @@
       "RestartPolicy": 1,
       "MaxRetries": 3,
       "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "mockmesnode_1",
+      "AssemblyName": "NatsROS.KernelNodes",
+      "TypeName": "NatsROS.KernelNodes.MockMesNode",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
     }
   ]
 }
