@@ -351,7 +351,8 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTreeEditor
 
                 // 2. 利用 NATS 发起热重载 RPC
                 // 注意：这里的 "brain" 需要对应你在母体中加载的节点名，如果你叫 "brain_1" 就改成 "brain_1.bt.reload"
-                var reloadClient = new NatsROS.Core.Communication.RosServiceClient<NatsROS.Core.SystemMessages.ReloadTreeReq, NatsROS.Core.SystemMessages.ReloadTreeRes>(_nats, "brain.bt.reload");
+                string targetRoute = $"{TxtTargetBrain.Text.Trim()}.bt.reload";
+                var reloadClient = new NatsROS.Core.Communication.RosServiceClient<NatsROS.Core.SystemMessages.ReloadTreeReq, NatsROS.Core.SystemMessages.ReloadTreeRes>(_nats, targetRoute);
 
                 // 设置 3 秒超时
                 var response = await reloadClient.CallAsync(new NatsROS.Core.SystemMessages.ReloadTreeReq(xmlContent), TimeSpan.FromSeconds(3));

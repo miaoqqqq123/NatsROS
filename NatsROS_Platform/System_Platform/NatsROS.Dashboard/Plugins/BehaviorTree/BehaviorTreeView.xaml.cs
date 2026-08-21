@@ -16,7 +16,8 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTree
     public partial class BehaviorTreeView : UserControl, IDisposable
     {
         private readonly INatsClient _nats;
-        private readonly CancellationTokenSource _cts = new();
+        // 允许反复重置的 Token
+        private CancellationTokenSource? _monitorCts;
         private readonly Dictionary<string, DiagramShape> _shapeDict = new();
         private bool _topologyDrawn = false;
 
@@ -24,15 +25,29 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTree
         {
             InitializeComponent();
             _nats = nats;
-            _ = ListenToBrainAsync(_cts.Token);
         }
 
-        private async Task ListenToBrainAsync(CancellationToken ct)
+        private void BtnMonitor_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(CboBrainNode.Text)) return;
+
+            // 切断对上一个大脑的窃听
+            if (_monitorCts != null) { _monitorCts.Cancel(); _monitorCts.Dispose(); }
+
+            _monitorCts = new CancellationTokenSource();
+            _topologyDrawn = false;
+            DiagramTree.Items.Clear();
+
+            // 开始监听新的大脑
+            _ = ListenToBrainAsync(CboBrainNode.Text.Trim(), _monitorCts.Token);
+        }
+
+        private async Task ListenToBrainAsync(string targetBrain, CancellationToken ct)
         {
             try
             {
                 // 1. 【核心修复】：主动出击！向大脑索要拓扑图！
-                var topClient = new Core.Communication.RosServiceClient<BtTopologyReq, BtTopologyMsg>(_nats, "brain.bt.topology.request");
+                var topClient = new Core.Communication.RosServiceClient<BtTopologyReq, BtTopologyMsg>(_nats, $"{targetBrain}.bt.topology.request");
 
                 // 写一个极其稳健的重试循环：如果大脑还没启动，UI 就每秒问一次，直到大脑上线并交出图谱！
                 while (!_topologyDrawn && !ct.IsCancellationRequested)
@@ -53,12 +68,11 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTree
                     }
                 }
 
-                // 2. 监听状态波 (染色)
-                var stateSub = _nats.SubscribeAsync<BtStateMsg>("brain.bt.state", cancellationToken: ct);
+                // 【核心修复】：动态监听特定大脑的状态流！
+                var stateSub = _nats.SubscribeAsync<BtStateMsg>($"{targetBrain}.bt.state", cancellationToken: ct);
                 await foreach (var msg in stateSub)
                 {
-                    if (msg.Data != null && _topologyDrawn)
-                        Dispatcher.Invoke(() => UpdateColors(msg.Data));
+                    if (msg.Data != null && _topologyDrawn) Dispatcher.Invoke(() => UpdateColors(msg.Data));
                 }
             }
             catch (OperationCanceledException) { }
@@ -174,6 +188,6 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTree
         }
 
 
-        public void Dispose() => _cts.Cancel();
+        public void Dispose() => _monitorCts?.Cancel();
     }
 }

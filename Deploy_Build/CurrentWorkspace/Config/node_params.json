@@ -20,14 +20,14 @@
   "scanner_y1": {
     "BarcodePrefix": "SN-Y1"
   },
+  "scanner_y2": {
+    "BarcodePrefix": "SN-Y2"
+  },
   "valve_1": {
     "ValveIoPin": "5",
     "OpenDelayMs": "50",
     "CloseDelayMs": "100",
     "BoardNodeName": "motionboard_1"
-  },
-  "scanner_y2": {
-    "BarcodePrefix": "SN-Y2"
   },
   "brain_dispenser": {
     "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\Deploy_Build\\CurrentWorkspace\\Config\\Tree_Dispenser.xml",

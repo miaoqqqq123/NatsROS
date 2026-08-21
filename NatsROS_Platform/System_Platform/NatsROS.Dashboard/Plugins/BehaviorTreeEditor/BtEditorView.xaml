@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
     xmlns:dxdiag="http://schemas.devexpress.com/winfx/2008/xaml/diagram"
+    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
     xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
     xmlns:dxprg="http://schemas.devexpress.com/winfx/2008/xaml/propertygrid"
     Background="Transparent"
@@ -121,6 +122,19 @@
                     Click="BtnAutoLayout_Click"
                     Content="✨ 自动排版 (Auto Layout)"
                     Glyph="{dx:DXImage 'SvgImages/DiagramIcons/Layout.svg'}" />
+                <TextBlock
+                    Margin="15,0,5,0"
+                    VerticalAlignment="Center"
+                    Foreground="LightGray"
+                    Text="目标大脑:" />
+                <dxe:TextEdit
+                    x:Name="TxtTargetBrain"
+                    Width="130"
+                    Height="30"
+                    FontWeight="Bold"
+                    Foreground="Orange"
+                    Text="brainnode_1" />
+
                 <dx:SimpleButton
                     x:Name="BtnDeploy"
                     Width="200"

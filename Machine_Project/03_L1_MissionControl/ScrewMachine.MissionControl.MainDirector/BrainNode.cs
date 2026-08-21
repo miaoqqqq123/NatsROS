@@ -63,7 +63,7 @@ namespace ScrewMachine.MissionControl.MainDirector
             // 【修复】：恢复 AutoStart 的读取，如果没配默认给 False（等 HMI 发指令才启动）
             AutoStart = bool.Parse(Parameters.GetLocal("AutoStart", "False"));
 
-            _statePublisher = CreatePublisher<BtStateMsg>("brain.bt.state", RosQosProfile.SensorData);
+            _statePublisher = CreatePublisher<BtStateMsg>($"{Name}.bt.state", RosQosProfile.SensorData);
 
             if (!string.IsNullOrEmpty(TreePath))
             {
@@ -97,7 +97,7 @@ namespace ScrewMachine.MissionControl.MainDirector
             // ==========================================
             // 1. 注册核心控制服务 (RPC Servers)
             // ==========================================
-            var reloadServer = CreateServer<ReloadTreeReq, ReloadTreeRes>("brain.bt.reload");
+            var reloadServer = CreateServer<ReloadTreeReq, ReloadTreeRes>($"{Name}.bt.reload");
             _ = reloadServer.ServeAsync(async req =>
             {
                 Logger.LogWarning("♻️ 收到网络热重载请求！正在熔断当前行为树...");
@@ -136,7 +136,7 @@ namespace ScrewMachine.MissionControl.MainDirector
             // ==========================================
             // 2. 注册拓扑图请求服务 (供 Dashboard 画图)
             // ==========================================
-            var topServer = CreateServer<BtTopologyReq, BtTopologyMsg>("brain.bt.topology.request");
+            var topServer = CreateServer<BtTopologyReq, BtTopologyMsg>($"{Name}.bt.topology.request");
             _ = topServer.ServeAsync(req =>
             {
                 var defs = new List<BtNodeDef>();

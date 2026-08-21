@@ -11,215 +11,101 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="320" />
         </Grid.ColumnDefinitions>
 
-        <!--  左侧：3D 渲染引擎画布  -->
+        <!-- 左侧：3D 渲染引擎画布 -->
         <helix:HelixViewport3D
             x:Name="Viewport3D"
             Grid.Column="0"
             Background="#1E1E1E"
             ShowCoordinateSystem="True"
             ZoomExtentsWhenLoaded="True">
+
             <helix:DefaultLights />
-            <helix:GridLinesVisual3D
-                Width="200"
-                Fill="#333333"
-                Length="200"
-                MajorDistance="50"
-                MinorDistance="10"
-                Thickness="0.5" />
+            <helix:GridLinesVisual3D Width="300" Fill="#333333" Length="300" MajorDistance="50" MinorDistance="10" Thickness="0.5" />
             <helix:CoordinateSystemVisual3D ArrowLengths="20" />
 
-            <!--  【升级】：产品底座容器 (不再写死 Box，而是等待装载真实 3D Mesh)  -->
-            <ModelVisual3D x:Name="ProductModelContainer" />
-
-            <!--  【升级】：点胶机头容器 (动态移动的宿主)  -->
-            <ModelVisual3D x:Name="DispenserHeadModel">
-                <!--  我们先给它塞一个默认的绿色小圆柱兜底，一旦导入了真实模型，这个就会被替换掉  -->
-                <helix:BoxVisual3D
-                    x:Name="DefaultHead"
-                    Width="5"
-                    Height="20"
-                    Fill="LimeGreen"
-                    Length="5" />
+            <!-- 【升级 1】：Y1 工位平台 (左侧，默认停靠 Y=100 的等待位) -->
+            <ModelVisual3D x:Name="StationY1Model">
+                <helix:BoxVisual3D Width="80" Length="100" Height="10" Center="-60, 100, -5" Fill="SteelBlue" />
+                <!-- 预留一个挂载真实产品 STL 的插槽 -->
+                <ModelVisual3D x:Name="ProductY1Container" />
             </ModelVisual3D>
 
-            <helix:LinesVisual3D
-                x:Name="GlueLines"
-                Thickness="5"
-                Color="OrangeRed" />
-            <helix:LinesVisual3D
-                x:Name="MoveLines"
-                Thickness="1"
-                Color="DarkGray" />
+            <!-- 【升级 2】：Y2 工位平台 (右侧，默认停靠 Y=100 的等待位) -->
+            <ModelVisual3D x:Name="StationY2Model">
+                <helix:BoxVisual3D Width="80" Length="100" Height="10" Center="60, 100, -5" Fill="DarkSlateBlue" />
+                <ModelVisual3D x:Name="ProductY2Container" />
+            </ModelVisual3D>
+
+            <!-- 【升级 3】：点胶机头 (只负责 X 和 Z 轴移动) -->
+            <ModelVisual3D x:Name="DispenserHeadModel">
+                <!-- 默认绿柱子兜底，一旦导入了真实模型就会被替换 -->
+                <helix:BoxVisual3D x:Name="DefaultHead" Width="5" Height="20" Length="5" Fill="LimeGreen" />
+            </ModelVisual3D>
+
+            <!-- 用于提取边界时高亮选中的面 -->
+            <ModelVisual3D x:Name="SelectedFaceModel" />
+
+            <!-- 胶路与轨迹线 -->
+            <helix:LinesVisual3D x:Name="GlueLines" Thickness="5" Color="OrangeRed" />
+            <helix:LinesVisual3D x:Name="MoveLines" Thickness="1" Color="DarkGray" />
+            <helix:LinesVisual3D x:Name="TeachLines" Thickness="4" Color="Yellow" />
         </helix:HelixViewport3D>
 
-        <!--  右侧：控制面板与遥测数据  -->
+        <!-- 右侧：控制面板与遥测数据 -->
         <dxlc:LayoutControl Grid.Column="1" Padding="10">
-            <dxlc:LayoutGroup
-                Header="🎯 孪生遥测 (Telemetry)"
-                Orientation="Vertical"
-                View="GroupBox">
+            <dxlc:LayoutGroup Header="🎯 孪生双工位遥测 (Telemetry)" Orientation="Vertical" View="GroupBox">
 
-                <TextBlock
-                    Height="16"
-                    Margin="0,0,0,10"
-                    Foreground="LightGray"
-                    Text="实时物理空间坐标:" />
-                <StackPanel
-                    Grid.Row="1"
-                    Height="24"
-                    Margin="0,0,0,5"
-                    Orientation="Horizontal">
-                    <TextBlock
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Foreground="Red"
-                        Text="X: " />
-                    <TextBlock
-                        x:Name="TxtLiveX"
-                        FontSize="18"
-                        Foreground="White"
-                        Text="0.00" />
+                <TextBlock Margin="0,0,0,5" Foreground="LightGray" Text="机头与工站绝对物理坐标:" />
+                <StackPanel Margin="0,0,0,5" Orientation="Horizontal">
+                    <TextBlock FontSize="16" FontWeight="Bold" Foreground="Red" Text="机头 X/Z: " />
+                    <TextBlock x:Name="TxtLiveX" FontSize="16" Foreground="White" Text="0.00" />
+                    <TextBlock FontSize="16" Foreground="White" Text=" / " />
+                    <TextBlock x:Name="TxtLiveZ" FontSize="16" Foreground="White" Text="50.00" />
                 </StackPanel>
-                <StackPanel
-                    Grid.Row="2"
-                    Height="24"
-                    Margin="0,0,0,5"
-                    Orientation="Horizontal">
-                    <TextBlock
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Foreground="Green"
-                        Text="Y: " />
-                    <TextBlock
-                        x:Name="TxtLiveY"
-                        FontSize="18"
-                        Foreground="White"
-                        Text="0.00" />
+                <StackPanel Margin="0,0,0,5" Orientation="Horizontal">
+                    <TextBlock FontSize="16" FontWeight="Bold" Foreground="DodgerBlue" Text="平台 Y1: " />
+                    <TextBlock x:Name="TxtLiveY1" FontSize="16" Foreground="White" Text="100.00" />
                 </StackPanel>
-                <StackPanel
-                    Grid.Row="3"
-                    Height="24"
-                    Margin="0,0,0,5"
-                    Orientation="Horizontal">
-                    <TextBlock
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Foreground="DodgerBlue"
-                        Text="Z: " />
-                    <TextBlock
-                        x:Name="TxtLiveZ"
-                        FontSize="18"
-                        Foreground="White"
-                        Text="50.00" />
+                <StackPanel Margin="0,0,0,15" Orientation="Horizontal">
+                    <TextBlock FontSize="16" FontWeight="Bold" Foreground="MediumPurple" Text="平台 Y2: " />
+                    <TextBlock x:Name="TxtLiveY2" FontSize="16" Foreground="White" Text="100.00" />
                 </StackPanel>
 
-                <!--  【新增】：真实的 3D 模型导入工具  -->
+                <!-- 真实的 3D 模型导入工具 -->
                 <Separator Margin="0,0,0,15" Background="#444" />
-                <TextBlock
-                    Height="14"
-                    Margin="0,0,0,10"
-                    Foreground="LightGray"
-                    Text="模型渲染 (CAD to Mesh):" />
-                <dx:SimpleButton
-                    x:Name="BtnLoadProduct"
-                    Height="30"
-                    Margin="0,0,0,5"
-                    Background="#FF37474F"
-                    Click="BtnLoadProduct_Click"
-                    Content="📥 导入产品模型 (STL/OBJ)"
-                    Foreground="White" />
-                <dx:SimpleButton
-                    x:Name="BtnLoadMachine"
-                    Height="30"
-                    Margin="0,0,0,20"
-                    Background="#FF37474F"
-                    Click="BtnLoadMachine_Click"
-                    Content="📥 导入机头模型 (STL/OBJ)"
-                    Foreground="White" />
+                <TextBlock Margin="0,0,0,10" Foreground="LightGray" Text="模型渲染 (CAD to Mesh):" />
+                <dx:SimpleButton x:Name="BtnLoadProduct" Height="30" Margin="0,0,0,5" Background="#FF37474F" Click="BtnLoadProduct_Click" Content="📥 导入产品模型至 Y1" Foreground="White" />
+                <dx:SimpleButton x:Name="BtnLoadMachine" Height="30" Margin="0,0,0,15" Background="#FF37474F" Click="BtnLoadMachine_Click" Content="📥 导入点胶机头模型" Foreground="White" />
 
+                <!-- CAM 特征提取 -->
                 <Separator Margin="0,0,0,15" Background="#444" />
-                <TextBlock
-                    Height="16"
-                    Margin="0,0,0,10"
-                    Foreground="LightGray"
-                    Text="高级宏指令演示 (Macro Tests):" />
+                <TextBlock Margin="0,0,0,10" Foreground="LightGray" Text="CAM 智能特征提取 (CAD to Path):" />
 
-                <dxlc:LayoutItem Label="目标 X:">
-                    <dxe:SpinEdit
-                        x:Name="SpinTargetX"
-                        MaxValue="100"
-                        MinValue="-100"
-                        Value="50" />
-                </dxlc:LayoutItem>
-                <dxlc:LayoutItem Label="目标 Y:">
-                    <dxe:SpinEdit
-                        x:Name="SpinTargetY"
-                        MaxValue="100"
-                        MinValue="-100"
-                        Value="50" />
-                </dxlc:LayoutItem>
-                <dxlc:LayoutItem Label="目标 Z:">
-                    <dxe:SpinEdit
-                        x:Name="SpinTargetZ"
-                        MaxValue="100"
-                        MinValue="0"
-                        Value="10" />
-                </dxlc:LayoutItem>
-                <dxlc:LayoutItem Label="速度:">
-                    <dxe:SpinEdit
-                        x:Name="SpinVel"
-                        MaxValue="200"
-                        MinValue="1"
-                        Value="50" />
+                <dxlc:LayoutItem Label="安全高度 (Safe Z):">
+                    <dxe:SpinEdit x:Name="SpinSafeZ" MaxValue="150" MinValue="0" Value="30" />
                 </dxlc:LayoutItem>
 
+                <StackPanel Margin="0,10,0,10" Orientation="Horizontal">
+                    <ToggleButton x:Name="TogFaceSelect" Width="135" Height="30" Background="#FF37474F" Click="TogFaceSelect_Click" Content="🖱️ 智能表面拾取" Foreground="White" />
+                    <dx:SimpleButton x:Name="BtnExtractPath" Width="135" Height="30" Margin="10,0,0,0" Background="#FF00838F" Click="BtnExtractPath_Click" Content="⚙️ 提取边界轮廓" Foreground="White" />
+                </StackPanel>
+
+                <TextBlock x:Name="TxtTeachCount" Margin="0,0,0,10" Foreground="Orange" Text="已生成 0 个加工轨迹点" />
+
+                <dx:SimpleButton x:Name="BtnDeployTeach" Height="40" Margin="0,0,0,15" Background="#FF2E7D32" Click="BtnDeployTeach_Click" Content="✨ 呼叫大脑执行 CAM 轨迹" FontWeight="Bold" Foreground="White" />
+
+                <!-- 视觉引导测试 -->
                 <Separator Margin="0,0,0,15" Background="#444" />
-                <TextBlock
-                    Height="16"
-                    Margin="0,0,0,10"
-                    Foreground="LightGray"
-                    Text="视觉引导与仿射变换测试:" />
+                <TextBlock Margin="0,0,0,10" Foreground="LightGray" Text="视觉引导与仿真测试:" />
 
-                <!--  【新增】模拟工人没放正  -->
-                <dx:SimpleButton
-                    x:Name="BtnSimulateSkew"
-                    Height="30"
-                    Margin="0,0,0,10"
-                    Background="#FFB71C1C"
-                    Click="BtnSimulateSkew_Click"
-                    Content="🎲 1. 模拟工人放歪产品"
-                    Foreground="White" />
+                <dx:SimpleButton x:Name="BtnSimulateSkew" Height="30" Margin="0,0,0,10" Background="#FFB71C1C" Click="BtnSimulateSkew_Click" Content="🎲 1. 模拟工人将 Y1 放歪" Foreground="White" />
 
-                <dx:SimpleButton
-                    x:Name="BtnSendGoal"
-                    Height="30"
-                    Margin="0,0,0,10"
-                    Background="#FF37474F"
-                    Click="BtnSendGoal_Click"
-                    Content="2. 绝对坐标单点移动"
-                    Foreground="White" />
+                <dx:SimpleButton x:Name="BtnDrawRect" Height="40" Margin="0,0,0,10" Background="#FF2E7D32" Click="BtnDrawRect_Click" Content="🧠 2. 呼叫点胶大脑测试" FontWeight="Bold" Foreground="White" />
 
-                <!--  【修改】加入视觉纠偏  -->
-                <dx:SimpleButton
-                    x:Name="BtnDrawRect"
-                    Height="45"
-                    Margin="0,0,0,10"
-                    Background="#FF2E7D32"
-                    Click="BtnDrawRect_Click"
-                    Content="🧠 3. 呼叫大脑执行工艺"
-                    FontWeight="Bold"
-                    Foreground="White" />
-
-                <dx:SimpleButton
-                    x:Name="BtnClearLines"
-                    Height="30"
-                    Background="#FFC62828"
-                    Click="BtnClearLines_Click"
-                    Content="🧹 清空胶路"
-                    Foreground="White" />
+                <dx:SimpleButton x:Name="BtnClearLines" Height="30" Background="#FFC62828" Click="BtnClearLines_Click" Content="🧹 清空画板与胶路" Foreground="White" />
 
             </dxlc:LayoutGroup>
         </dxlc:LayoutControl>
