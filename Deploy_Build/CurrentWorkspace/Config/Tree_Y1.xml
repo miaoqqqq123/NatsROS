@@ -8,34 +8,40 @@
           <Name>顺序执行 (Sequence)</Name>
           <Children>
             <Node type="ScrewMachine.MissionControl.MainDirector.Actions.WaitIoAction" Id="7d477439-d98d-4943-95c7-546f5ab33f64">
-              <Name>1. 挂起等待 IO 信号</Name>
+              <Name>挂起等待 IO 信号-0</Name>
               <BoardNodeName>motionboard_1</BoardNodeName>
               <Pin>0</Pin>
               <TargetState>True</TargetState>
             </Node>
             <Node type="ScrewMachine.MissionControl.MainDirector.Actions.TriggerScanAction" Id="5621033e-46e8-4c75-b811-e0e382a961dd">
-              <Name>扫码枪触发</Name>
+              <Name>扫码枪触发-Y1</Name>
               <ScannerNode>scanner_y1</ScannerNode>
               <TimeoutMs>3000</TimeoutMs>
             </Node>
             <Node type="ScrewMachine.MissionControl.MainDirector.Actions.AxisMoveAction" Id="ccee4178-71a1-4043-8de5-be2ecc1a2148">
-              <Name>单轴移动Y1</Name>
-              <TargetAxis>axis_y1</TargetAxis>
-              <TargetPosition>500</TargetPosition>
-              <Velocity>100</Velocity>
-            </Node>
-            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.AxisMoveAction" Id="4f883cd5-f190-4876-9955-295b1ea8a129">
-              <Name>单轴移动Y1</Name>
+              <Name>单轴移动Y1-移动到工作位</Name>
               <TargetAxis>axis_y1</TargetAxis>
               <TargetPosition>0</TargetPosition>
               <Velocity>100</Velocity>
             </Node>
-            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.UploadMesAction" Id="527cee16-37a0-46d3-9fa0-551c8f6e7220">
-              <Name>3. 上传 MES 记录</Name>
-              <MesNodeName>mockmesnode_1</MesNodeName>
+            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.DispatchWorkOrderAction" Id="1184af1d-9768-4eef-a97f-33455621f1ec">
+              <Name>派发加工订单 (Y1轴用)</Name>
+              <TargetRoute>dispenser_center.order</TargetRoute>
+              <StationCode>Y1</StationCode>
+              <TimeoutSeconds>60</TimeoutSeconds>
             </Node>
-            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.WaitIoAction" Id="594dee2c-30f4-4eec-afa2-6c482abb7c8d">
-              <Name>1. 挂起等待 IO 信号</Name>
+            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.AxisMoveAction" Id="b8ab4886-aeec-4430-841c-00d535ba91bf">
+              <Name>单轴移动Y1-移动到上下料位</Name>
+              <TargetAxis>axis_y1</TargetAxis>
+              <TargetPosition>-500</TargetPosition>
+              <Velocity>100</Velocity>
+            </Node>
+            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.UploadMesAction" Id="6c75f14d-3f46-4572-b306-0fd0e44818b7">
+              <Name>上传 MES 记录-Y1</Name>
+              <MesNodeName>mockmesnode</MesNodeName>
+            </Node>
+            <Node type="ScrewMachine.MissionControl.MainDirector.Actions.WaitIoAction" Id="4019723c-0a52-44c8-a47a-fd1f2a49da2c">
+              <Name>挂起等待 IO 信号-0</Name>
               <BoardNodeName>motionboard_1</BoardNodeName>
               <Pin>0</Pin>
               <TargetState>False</TargetState>

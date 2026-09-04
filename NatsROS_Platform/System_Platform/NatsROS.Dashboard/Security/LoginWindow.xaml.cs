@@ -52,5 +52,11 @@ namespace NatsROS.Dashboard.Security
                 BtnLogin.IsEnabled = true;
             }
         }
+
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false; // 放行，关闭登录框
+            this.Close();
+        }
     }
 }

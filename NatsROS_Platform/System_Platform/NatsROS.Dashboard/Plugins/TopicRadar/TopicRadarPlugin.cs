@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Client.Core;
-using NatsROS.Dashboard.Infrastructure;
+using NatsROS.Core.UI;
 
 namespace NatsROS.Dashboard.Plugins.TopicRadar
 {
@@ -9,7 +9,8 @@ namespace NatsROS.Dashboard.Plugins.TopicRadar
     public class TopicRadarPlugin : IDashboardPlugin
     {
         // 挂载到 Ribbon 的哪个选项卡下？
-        public string RibbonCategory => "全网监控 (Monitoring)";
+        public string RibbonPage => "系统核心 (System Core)";
+        public string RibbonGroup => "全网诊断 (Diagnostics)";
 
         // 按钮的名字
         public string DisplayName => "话题雷达 (Topic Radar)";

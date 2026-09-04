@@ -18,4 +18,13 @@ namespace Hexiv.BehaviorTree.Attributes
         public string DefaultValue { get; set; } = "";
         public string Description { get; set; } = "";
     }
+
+    // 纯 C# 自定义特性，不依赖任何 UI 库
+    [AttributeUsage(AttributeTargets.Property, Inherited = true)]
+    public class PointSelectorAttribute : Attribute
+    {
+        // 未来可以在这里扩展过滤条件，比如只显示“连续轨迹”或“离散点位”
+    }
+
+
 }

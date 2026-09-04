@@ -1,15 +1,37 @@
 <Project>
 	<PropertyGroup>
-		<!-- 1. 万剑归宗：强制将所有项目的编译结果输出到根目录的 Deploy_Build\Bin 下 -->
-		<OutputPath>$(MSBuildThisFileDirectory)Deploy_Build\Bin\</OutputPath>
+		<!-- 1. 定义部署的绝对根目录变量 -->
+		<DeployRootDir>$(MSBuildThisFileDirectory)Deploy_Build\</DeployRootDir>
+
+		<!-- ========================================== -->
+		<!-- 2. 【架构终极魔法】：基于物理目录的血统判定 -->
+		<!-- 只要代码文件位于 Machine_Project 文件夹下，统统视为机型专属业务包！ -->
+		<!-- ========================================== -->
+		<IsMachineProject Condition="$(MSBuildProjectDirectory.Contains('Machine_Project'))">true</IsMachineProject>
+
+		<!-- 输出路径路由 -->
+		<!-- 机台业务代码（UI、硬件驱动、消息契约）：全部关进沙盒！ -->
+		<OutputPath Condition="'$(IsMachineProject)' == 'true'">$(DeployRootDir)CurrentWorkspace\Plugins\</OutputPath>
+
+		<!-- 操作系统内核（NatsROS_Platform）：万剑归宗到 Bin 目录 -->
+		<OutputPath Condition="'$(IsMachineProject)' != 'true'">$(DeployRootDir)Bin\</OutputPath>
+
+		<!-- ========================================== -->
+		<!-- 【新增】：SDK 打包输出路由 -->
+		<!-- 只有核心框架库在编译时，才会把生成的 NuGet 包放进 SDK 专属目录 -->
+		<!-- ========================================== -->
+		<PackageOutputPath Condition="'$(IsMachineProject)' != 'true'">$(DeployRootDir)SDK_Packages\</PackageOutputPath>
+		
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 
+		<!-- ========================================== -->
+		<!-- 依赖拷贝隔离：OS核心拷贝依赖，机台业务不拷贝（复用核心资源） -->
+		<!-- ========================================== -->
+		<CopyLocalLockFileAssemblies Condition="'$(IsMachineProject)' != 'true'">true</CopyLocalLockFileAssemblies>
+		<CopyLocalLockFileAssemblies Condition="'$(IsMachineProject)' == 'true'">false</CopyLocalLockFileAssemblies>
 
-		<!-- 强制把所有 NuGet 第三方包的 DLL 物理拷贝到输出目录，彻底摆脱底层账本依赖！ -->
-		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-
-		<!-- 4. 统一 C# 代码规范 (如果您想统一全公司的代码风格，写在这里最管用) -->
+		<!-- 3. 统一 C# 代码规范 -->
 		<LangVersion>latest</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>

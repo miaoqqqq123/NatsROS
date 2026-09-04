@@ -1,0 +1,25 @@
+<Project>
+	<PropertyGroup>
+		<!-- 1. 定义部署的绝对根目录变量 -->
+		<DeployRootDir>$(MSBuildThisFileDirectory)Deploy_Build\</DeployRootDir>
+
+		<!-- 2. 【核心魔法】：智能输出路由 (基于物理目录的血统判定) -->
+		<IsMachineProject>true</IsMachineProject>
+
+		<!-- 输出路径路由：强制让新机台的业务代码，统统编译进沙盒！ -->
+		<OutputPath>$(DeployRootDir)CurrentWorkspace\Plugins\</OutputPath>
+
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+		<!-- ========================================== -->
+		<!-- 依赖拷贝隔离：机台业务绝对不拷贝 NATS 和 DevExpress（复用母体核心资源） -->
+		<!-- ========================================== -->
+		<CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+
+		<!-- 3. 统一 C# 代码规范 -->
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+</Project>

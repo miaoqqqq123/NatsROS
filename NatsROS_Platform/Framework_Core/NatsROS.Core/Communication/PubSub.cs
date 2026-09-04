@@ -9,6 +9,8 @@ using NatsROS.Core;
 using NatsROS.Core.Communication;
 using System.Runtime.CompilerServices;
 
+namespace NatsROS.Core.Communication;
+
 public class RosPublisher<T>(INatsClient nats, string topicName, RosQosProfile qos) where T : IRosMessage
 {
     private INatsJSContext? _jsContext;
@@ -71,16 +73,40 @@ public class RosSubscriber<T>(INatsClient nats, string topicName, RosQosProfile 
             var js = nats.CreateJetStreamContext();
             var streamName = $"ROS_STREAM_{topicName.Replace(".", "_")}";
 
+
+            // 订阅端也必须承担确保流存在的责任！
+            // 防止订阅者比发布者先启动导致 stream not found 异常
+            // 为每一个订阅者实例生成全球唯一的消费者名字！
+            // 彻底解决多窗口订阅同名流时的“负载均衡/消息被偷”问题，实现 100% 全网广播。
+
+            string consumerName = $"{streamName}_SUB_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+
+            try
+            {
+                await js.CreateStreamAsync(new StreamConfig(streamName, new[] { topicName })
+                {
+                    MaxMsgs = qos.HistoryDepth,
+                    Retention = StreamConfigRetention.Limits
+                }, cancellationToken);
+            }
+            catch { /* 如果发布者已经建好流了，这里会报流已存在，我们静默忽略即可 */ }
+
+
             // 为当前订阅者创建一个独占的消费者，起点配置为：如果是 TransientLocal 则读取历史
             var deliverPolicy = qos.Durability == RosDurability.TransientLocal
                 ? ConsumerConfigDeliverPolicy.All
                 : ConsumerConfigDeliverPolicy.New;
 
-            var consumer = await js.CreateOrUpdateConsumerAsync(streamName, new ConsumerConfig(streamName)
+            // 传入唯一名字，并设置 InactiveThreshold！
+            // 因为 UI 窗口可能会被频繁关闭/重开，设置 1 分钟不活动则自动清理，防止 NATS 服务器内存泄漏！
+            var consumerConfig = new ConsumerConfig(consumerName)
             {
                 DeliverPolicy = deliverPolicy,
-                AckPolicy = ConsumerConfigAckPolicy.None // 为了演示简化，暂不要求手动 Ack
-            }, cancellationToken);
+                AckPolicy = ConsumerConfigAckPolicy.None,
+                InactiveThreshold = TimeSpan.FromMinutes(1) // 1分钟没连上，NATS自动销毁这个临时消费者
+            };
+
+            var consumer = await js.CreateOrUpdateConsumerAsync(streamName, consumerConfig, cancellationToken);
 
             await foreach (var msg in consumer.ConsumeAsync<T>(cancellationToken: cancellationToken))
             {

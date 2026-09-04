@@ -117,7 +117,7 @@ namespace ScrewMachine.MissionControl.MainDirector
             _ = startServer.ServeAsync(async req =>
             {
                 if (_rootNode == null) return new StartTreeRes(false, "大脑中没有加载行为树配方");
-                await StartTreeAsync(false, req.ContextData);
+                await StartTreeAsync(req.IsLoop, req.ContextData);
                 return new StartTreeRes(true, "行为树已启动");
             }, stoppingToken);
 

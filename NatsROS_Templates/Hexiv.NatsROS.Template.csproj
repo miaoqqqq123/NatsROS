@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 【核心魔法】：告诉 MSBuild，这不是代码，这是一个模板包！ -->
+    <PackageType>Template</PackageType>
+    <PackageVersion>1.2026.0903.1</PackageVersion>
+    <PackageId>Hexiv.NatsROS.Machine.Template</PackageId>
+    <Title>NatsROS 工业标准机台工程 (Standard Machine)</Title>
+    <Authors>Hexiv Automation</Authors>
+    <Description>一键生成包含 HAL底层驱动、L1业务大脑、定制化 3D 大屏插件的 NatsROS 标准机台工程。</Description>
+    <PackageTags>dotnet-new;templates;natsros;industrial</PackageTags>
+    
+    <!-- 基础配置：阻止编译行为 -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+
+    <!-- ========================================== -->
+    <!-- 【新增】：静默屏蔽 NU5128 警告，并阻止依赖打包 -->
+    <!-- ========================================== -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 把整个 MachineTemplate 文件夹塞进压缩包，但极其聪明地避开别人不小心编译生成的 bin/obj 垃圾 -->
+    <Content Include="MachineTemplate\**\*" Exclude="MachineTemplate\**\bin\**;MachineTemplate\**\obj\**;MachineTemplate\**\.vs\**" />
+    <Compile Remove="**\*" />
+  </ItemGroup>
+
+</Project>

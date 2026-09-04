@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<!-- 业务库，打上日历版本号 -->
+		<AssemblyVersion>1.2026.0903.1</AssemblyVersion>
+		<FileVersion>1.2026.0903.1</FileVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MessagePack" Version="3.1.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- 【核心】：它只依赖系统的 Core 核心库，绝对不要依赖 Dashboard！ -->
+		<ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Core\NatsROS.Core.csproj">
+		  <Private>False</Private>
+		</ProjectReference>
+		<ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Messages\NatsROS.Messages.csproj">
+		  <Private>False</Private>
+		</ProjectReference>
+	</ItemGroup>
+
+</Project>

@@ -66,7 +66,8 @@ public record ReloadTreeRes(
 
 [MessagePackObject]
 public record StartTreeReq(
-    [property: Key(0)] Dictionary<string, string>? ContextData = null
+    [property: Key(0)] Dictionary<string, string>? ContextData = null,
+    [property: Key(1)] bool IsLoop = false  
 ) : IRosRequest<StartTreeRes>;
 
 [MessagePackObject]

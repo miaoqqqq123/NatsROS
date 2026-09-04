@@ -107,7 +107,7 @@ namespace NatsROS.Container
             builder.AddRosNode<RecipeManagerNode>("rms");
 
             // MES 数据边缘网关 (默认常驻，收集生产数据)
-            builder.AddRosNode<MockMesNode>("mockmesnode");
+            builder.AddRosNode<MesDatabaseNode>("mockmesnode");
 
             // 机台崩溃黑匣子 (永远在后台防爆窃听)
             builder.AddRosNode<BlackboxNode>("blackbox");

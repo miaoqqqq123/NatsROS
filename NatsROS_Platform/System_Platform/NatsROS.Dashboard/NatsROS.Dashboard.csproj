@@ -6,13 +6,22 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyVersion>1.2026.0821.0</AssemblyVersion>
-    <FileVersion>1.2026.0821.0</FileVersion>
+    <AssemblyVersion>1.2026.0903.0</AssemblyVersion>
+    <FileVersion>1.2026.0903.0</FileVersion>
     <PlatformTarget>x64</PlatformTarget>
+    <ApplicationIcon>图标.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="TopicMonitorItem.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="UI\ThemedSplashScreen\ats256x256.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="图标.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,7 +31,6 @@
     <PackageReference Include="devexpress.wpf.grid.core" Version="23.2.3" />
     <PackageReference Include="devexpress.wpf.layoutcontrol" Version="23.2.3" />
     <PackageReference Include="devexpress.wpf.propertygrid" Version="23.2.3" />
-    <PackageReference Include="HelixToolkit.Wpf" Version="3.1.2" />
     <PackageReference Include="MessagePack" Version="3.1.8" />
     <PackageReference Include="NATS.Net" Version="2.7.3" />
   </ItemGroup>
@@ -156,6 +164,16 @@
     <Reference Include="DevExpress.Xpf.ThemesLW.v23.2">
       <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.ThemesLW.v23.2.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="UI\ThemedSplashScreen\ats256x256.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="UI\Dialogs\PluginManagerDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>

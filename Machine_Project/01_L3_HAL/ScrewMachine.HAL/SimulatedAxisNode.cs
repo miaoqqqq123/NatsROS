@@ -2,7 +2,7 @@
 using NATS.Client.Core;
 using NatsROS.Core.Attributes;
 using NatsROS.Hosting;
-using NatsROS.Messages.Motion;
+using ScrewMachine.Messages.Motion;
 
 namespace ScrewMachine.HAL
 {

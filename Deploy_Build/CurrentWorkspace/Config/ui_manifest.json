@@ -1,0 +1,20 @@
+{
+  "EnabledPlugins": [
+    "WatchdogPlugin",
+    "TopicRadarPlugin",
+    "SecurityStudioPlugin",
+    "RecipeStudioPlugin",
+    "RecipeEditorPlugin",
+    "PublisherCallerPlugin",
+    "NodeManagerPlugin",
+    "IntrospectionPlugin",
+    "BtEditorPlugin",
+    "BagPlayerPlugin",
+    "EchoTestPlugin",
+    "PointStudioPlugin",
+    "MesReportPlugin",
+    "HalConsolePlugin",
+    "DigitalTwinPlugin",
+    "BehaviorTreePlugin"
+  ]
+}

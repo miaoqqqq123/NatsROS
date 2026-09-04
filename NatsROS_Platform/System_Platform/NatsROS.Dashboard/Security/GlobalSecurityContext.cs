@@ -22,6 +22,9 @@ namespace NatsROS.Dashboard.Security
             Token = token;
             _permissions = new HashSet<string>(perms ?? new List<string>());
 
+            // 【核心枢纽】：同步将身份下沉到 Core 核心库，供外部独立插件读取！
+            NatsROS.Core.Security.RosSecurityContext.Login(user.Username, user.DisplayName, user.Role, token, perms);
+
             // 触发事件，通知所有 UI 重新计算自己的状态
             OnUserChanged?.Invoke(null, EventArgs.Empty);
         }

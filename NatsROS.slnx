@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/Machine_Project/" />
-  <Folder Name="/Machine_Project/00_Messages/" />
+  <Folder Name="/Machine_Project/00_Messages/">
+    <Project Path="Machine_Project/00_Messages/ScrewMachine.Messages/ScrewMachine.Messages.csproj" Id="222d16bc-8a8c-4662-b579-0b3cb7a5b4df" />
+  </Folder>
   <Folder Name="/Machine_Project/01_L3_HAL/">
     <Project Path="Machine_Project/01_L3_HAL/ScrewMachine.HAL/ScrewMachine.HAL.csproj" Id="556c6a27-21cf-48a5-b35a-dae672129f40" />
   </Folder>
@@ -9,7 +11,8 @@
     <Project Path="Machine_Project/03_L1_MissionControl/ScrewMachine.MissionControl.MainDirector/ScrewMachine.MissionControl.MainDirector.csproj" />
   </Folder>
   <Folder Name="/Machine_Project/04_UserInterfaces/">
-    <Project Path="Machine_Project/04_UserInterfaces/ScrewMachine.UI/ScrewMachine.UI.csproj" Id="c7c04683-077a-4d4d-ba71-89ccc228d710" />
+    <Project Path="Machine_Project/04_UserInterfaces/NatsROS.Plugin.EchoTest/NatsROS.Plugin.EchoTest.csproj" Id="7cd28862-e481-49fd-884d-2890eec5749b" />
+    <Project Path="Machine_Project/04_UserInterfaces/ScrewMachine.DashboardPlugins/ScrewMachine.Dashboard.Plugins.csproj" Id="47ec4d0a-88ff-455b-b5fa-069bfaa149e9" />
   </Folder>
   <Folder Name="/NatsROS_Platform/" />
   <Folder Name="/NatsROS_Platform/Framework_Core/">
@@ -21,11 +24,11 @@
     <Project Path="NatsROS_Platform/System_Platform/NatsROS.BehaviorTree/NatsROS.BehaviorTree.csproj" />
     <Project Path="NatsROS_Platform/System_Platform/NatsROS.Container/NatsROS.Container.csproj" />
     <Project Path="NatsROS_Platform/System_Platform/NatsROS.Dashboard/NatsROS.Dashboard.csproj" />
-    <Project Path="NatsROS_Platform/System_Platform/NatsROS.Hmi/NatsROS.Hmi.csproj" />
     <Project Path="NatsROS_Platform/System_Platform/NatsROS.KernelNodes/NatsROS.KernelNodes.csproj" Id="09751a15-2119-4f34-996c-391b639839a3" />
     <Project Path="NatsROS_Platform/System_Platform/NatsROS.Launcher/NatsROS.Launcher.csproj" />
   </Folder>
   <Folder Name="/解决方案项/">
     <File Path="Directory.Build.props" />
+    <File Path="nuget.config" />
   </Folder>
 </Solution>

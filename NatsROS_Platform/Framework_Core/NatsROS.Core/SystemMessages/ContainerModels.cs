@@ -44,9 +44,12 @@ public record UnloadNodeRes(
 // ==========================================
 [MessagePackObject]
 public record NodeStatusInfo(
-    [property: Key(0)] string NodeName, 
-    [property: Key(1)] byte State
-    ) : IRosMessage;
+    [property: Key(0)] string NodeName,
+    [property: Key(1)] byte State,
+    [property: Key(2)] string AssemblyName = "",    // 【新增】：告诉大屏这个节点是哪个 DLL 的
+    [property: Key(3)] string TypeName = "",        // 【新增】：告诉大屏这个节点是哪个类的
+    [property: Key(4)] string Version = "1.0.0.0"   // 【新增】：节点版本号
+) : IRosMessage;
 
 [MessagePackObject]
 public record ListNodesReq() : IRosRequest<ListNodesRes>;

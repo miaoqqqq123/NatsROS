@@ -63,12 +63,12 @@ namespace NatsROS.Core.Environment
             return Path.Combine(configDir, fileName);
         }
 
-        // 快捷获取：配方库文件 (rms_recipes.json)
-        public static string GetRecipeDbPath()
+        // 快捷获取：配方库文件夹 (Recipes)
+        public static string GetRecipeDirectoryPath()
         {
             string recipeDir = Path.Combine(CurrentWorkspacePath, "Recipes");
             if (!Directory.Exists(recipeDir)) Directory.CreateDirectory(recipeDir);
-            return Path.Combine(recipeDir, "rms_recipes.json");
+            return recipeDir;
         }
 
         // 快捷获取：行为树根目录 (供子树解析用)

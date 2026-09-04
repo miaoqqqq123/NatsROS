@@ -21,7 +21,6 @@ public record RecipeModel(
     [property: Key(1)] string RecipeName,         // 产品名称 (如 "苹果 iPhone 15 散热板")
     [property: Key(2)] string Version,            // 版本号 (如 "V1.0")
     [property: Key(3)] RecipeState State,         // 当前状态
-    [property: Key(4)] string ProcedureTreeName,  // 绑定的 L1 行为树剧本名 (如 "DispenseTree.xml")
     [property: Key(5)] Dictionary<string, string> Formula, // 工艺参数配方表 (速度、坐标文件、安全高度等)
     [property: Key(6)] string LastModifiedBy,     // 最后修改人
     [property: Key(7)] long LastModifiedTime      // 最后修改时间戳
@@ -84,4 +83,42 @@ public record GetAuditLogsReq(
 [MessagePackObject]
 public record GetAuditLogsRes(
     [property: Key(0)] List<AuditLogRecord> Logs
+) : IRosMessage;
+
+
+// ==========================================
+// 4. 当前激活配方 (Active Recipe) 相关的 RPC 与广播
+// ==========================================
+[MessagePackObject]
+public record ActivateRecipeReq(
+    [property: Key(0)] string RecipeId
+) : IRosRequest<ActivateRecipeRes>;
+
+[MessagePackObject]
+public record ActivateRecipeRes(
+    [property: Key(0)] bool Success,
+    [property: Key(1)] string Message
+) : IRosMessage;
+
+[MessagePackObject]
+public record GetActiveRecipeReq() : IRosRequest<GetActiveRecipeRes>;
+
+[MessagePackObject]
+public record GetActiveRecipeRes(
+    [property: Key(0)] RecipeModel? ActiveRecipe
+) : IRosMessage;
+
+// 当配方被激活时，向全网广播！
+[MessagePackObject]
+public record RecipeActivatedEvent(
+    [property: Key(0)] RecipeModel Recipe,
+    [property: Key(1)] long TimestampTick
+) : IRosMessage;
+
+
+// 当配方被修改、新建或改变状态时，向全网广播！
+[MessagePackObject]
+public record RecipeUpdatedEvent(
+    [property: Key(0)] string RecipeId,
+    [property: Key(1)] long TimestampTick
 ) : IRosMessage;

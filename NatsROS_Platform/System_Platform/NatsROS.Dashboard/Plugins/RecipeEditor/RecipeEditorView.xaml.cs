@@ -36,9 +36,9 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
         private readonly INatsClient _nats;
         public ObservableCollection<AvailableNodeInfo> AvailableNodes { get; set; } = new();
         public ObservableCollection<RecipeNodeItem> RecipeNodes { get; set; } = new();
-        public ObservableCollection<RecipeParamItem> CurrentParameters { get; set; } = new();
 
         private RecipeNodeItem? _currentEditingRecipe;
+        private object? _dummyProxyObject;
 
         public RecipeEditorView(INatsClient nats)
         {
@@ -47,7 +47,6 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
 
             GridAvailableNodes.ItemsSource = AvailableNodes;
             GridRecipeNodes.ItemsSource = RecipeNodes;
-            GridParams.ItemsSource = CurrentParameters;
 
             // 【新增】：初始化自愈策略下拉框数据字典
             CboRestartPolicySettings.ItemsSource = new[]
@@ -76,14 +75,17 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
                 {
                     // 提取类上的 [RosNode] 标签
                     var nodeAttr = t.GetCustomAttribute<RosNodeAttribute>();
+                    // 反射提取该节点所在的真实 DLL 的物理版本号！
+                    string version = t.Assembly.GetName().Version?.ToString() ?? "1.0.0.0";
 
                     AvailableNodes.Add(new AvailableNodeInfo
                     {
                         AssemblyName = t.Assembly.GetName().Name ?? "",
                         TypeName = t.FullName ?? "",
+                        Version = version,
                         DisplayName = nodeAttr?.DisplayName ?? t.Name, // 优先显示漂亮的中文名
                         Category = nodeAttr?.Category ?? "默认组件",
-                        Description = nodeAttr?.Description ?? ""
+                        Description = nodeAttr?.Description ?? "无"
                     });
                 }
             }
@@ -102,6 +104,7 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
                 NodeName = $"{selectedInfo.TypeName.Split('.').Last().ToLower()}_{RecipeNodes.Count + 1}",
                 AssemblyName = selectedInfo.AssemblyName,
                 TypeName = selectedInfo.TypeName,
+                Version = selectedInfo.Version,
                 RestartPolicy = 1 // 默认故障重启
             };
 
@@ -123,70 +126,6 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
             RecipeNodes.Add(newItem);
         }
 
-        // ==========================================
-        // 3. 点击中间配方，右侧动态显示/编辑参数
-        // ==========================================
-        private void GridRecipeNodes_SelectedItemChanged(object sender, DevExpress.Xpf.Grid.SelectedItemChangedEventArgs e)
-        {
-            if (_currentEditingRecipe != null)
-            {
-                _currentEditingRecipe.Parameters.Clear();
-                foreach (var p in CurrentParameters) _currentEditingRecipe.Parameters[p.Key] = p.Value;
-            }
-
-            _currentEditingRecipe = e.NewItem as RecipeNodeItem;
-            CurrentParameters.Clear();
-
-            if (_currentEditingRecipe != null)
-            {
-                GrpParams.Header = $"⚙️ 参数配置: {_currentEditingRecipe.NodeName}";
-
-                var targetType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } })
-                    .FirstOrDefault(t => t.FullName == _currentEditingRecipe.TypeName);
-
-                foreach (var kvp in _currentEditingRecipe.Parameters)
-                {
-                    string desc = "用户自定义附加参数";
-                    string category = "Misc (未分类)";
-                    bool isFile = false;                 // 【新增】
-                    string filter = "All Files (*.*)|*.*"; // 【新增】
-
-                    if (targetType != null)
-                    {
-                        var prop = targetType.GetProperty(kvp.Key);
-                        if (prop != null)
-                        {
-                            var descAttr = prop.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>();
-                            if (descAttr != null && !string.IsNullOrEmpty(descAttr.Description)) desc = descAttr.Description;
-
-                            var catAttr = prop.GetCustomAttribute<System.ComponentModel.CategoryAttribute>();
-                            if (catAttr != null && !string.IsNullOrEmpty(catAttr.Category)) category = catAttr.Category;
-
-                            // 【核心魔法】：捕获路径选择器标签！
-                            // (就算没打标签，只要参数名叫 path 结尾，我们也极度智能地给它开启文件选择功能！)
-                            var fileAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.FilePathAttribute>();
-                            if (fileAttr != null)
-                            {
-                                isFile = true;
-                                filter = fileAttr.Filter;
-                            }
-                            else if (kvp.Key.EndsWith("path", StringComparison.OrdinalIgnoreCase))
-                            {
-                                isFile = true;
-                            }
-                        }
-                    }
-
-                    CurrentParameters.Add(new RecipeParamItem { Key = kvp.Key, Value = kvp.Value, Description = desc, Category = category, IsFilePath = isFile, FileFilter = filter });
-                }
-            }
-            else
-            {
-                GrpParams.Header = "⚙️ 参数配置 (未选择)";
-            }
-        }
-
         private void BtnRemoveRecipeNode_Click(object sender, RoutedEventArgs e)
         {
             if (GridRecipeNodes.SelectedItem is RecipeNodeItem item) RecipeNodes.Remove(item);
@@ -197,13 +136,6 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
         // ==========================================
         private void BtnSaveRecipe_Click(object sender, RoutedEventArgs e)
         {
-            // 确保当前正在编辑的参数被保存回对象
-            if (_currentEditingRecipe != null)
-            {
-                _currentEditingRecipe.Parameters.Clear();
-                foreach (var p in CurrentParameters) _currentEditingRecipe.Parameters[p.Key] = p.Value;
-            }
-
             var dlg = new Microsoft.Win32.SaveFileDialog { Filter = "JSON Files (*.json)|*.json", FileName = "launch.json" };
             if (dlg.ShowDialog() == true)
             {
@@ -224,7 +156,6 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
                     if (profile != null)
                     {
                         RecipeNodes.Clear();
-                        CurrentParameters.Clear();
                         foreach (var n in profile.Nodes) RecipeNodes.Add(n);
                     }
                 }
@@ -235,13 +166,6 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
         private async void BtnLaunchAll_Click(object sender, RoutedEventArgs e)
         {
             if (_nats == null || RecipeNodes.Count == 0) return;
-
-            // 同样确保参数保存
-            if (_currentEditingRecipe != null)
-            {
-                _currentEditingRecipe.Parameters.Clear();
-                foreach (var p in CurrentParameters) _currentEditingRecipe.Parameters[p.Key] = p.Value;
-            }
 
             int count = 0;
             foreach (var node in RecipeNodes)
@@ -257,32 +181,153 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
             MessageBox.Show($"发射完毕！成功向母体注入 {count} 个节点。\n请前往 [母体节点大盘] 或 [话题雷达] 查看运行状态。", "发射通知");
         }
 
-        // ==========================================
-        // 智能参数编辑器：文件路径浏览功能
-        // ==========================================
-        private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
+        public void Dispose()
         {
-            // 拿到当前点击的单元格数据
-            var buttonEdit = sender as DevExpress.Xpf.Editors.ButtonEdit;
-            if (buttonEdit?.DataContext is EditGridCellData cellData && cellData.RowData.Row is RecipeParamItem paramItem)
-            {
-                var dlg = new Microsoft.Win32.OpenFileDialog
-                {
-                    Filter = paramItem.FileFilter,
-                    Title = $"请选择 {paramItem.Key} 的文件路径"
-                };
+            //throw new NotImplementedException();
+        }
 
-                if (dlg.ShowDialog() == true)
+        private void GridRecipeNodes_SelectedItemChanged(object sender, DevExpress.Xpf.Grid.SelectedItemChangedEventArgs e)
+        {
+            // 1. 如果之前有选中的影子对象，先把它最新的值【保存回】配方字典里
+            SaveProxyToDictionary();
+
+            _currentEditingRecipe = e.NewItem as RecipeNodeItem;
+
+            // 清理上一轮动态生成的属性拦截规则 (保留写死的那些)
+            var dynamicDefs = PropGridParams.PropertyDefinitions.Where(d => d.Tag?.ToString() == "Dynamic").ToList();
+            foreach (var d in dynamicDefs) PropGridParams.PropertyDefinitions.Remove(d);
+
+            if (_currentEditingRecipe != null)
+            {
+                GrpParams.Caption = $"⚙️ 参数配置: {_currentEditingRecipe.NodeName}";
+
+                // 2. 反射查找这个节点真实的 C# 类型
+                var targetType = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } })
+                    .FirstOrDefault(t => t.FullName == _currentEditingRecipe.TypeName);
+
+                if (targetType != null)
                 {
-                    // 将选择的路径填入单元格，DevExpress 的 PART_Editor 会自动触发数据的双向绑定！
-                    buttonEdit.EditValue = dlg.FileName;
+                    try
+                    {
+                        // 3. 实例化一个不触发构造函数的【纯净影子对象】
+                        _dummyProxyObject = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(targetType);
+
+                        var props = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                        foreach (var prop in props)
+                        {
+                            // 只处理打了 [RosProp] 标签，或者兼容你旧的 [Category] 标签的属性
+                            var rosAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.RosPropAttribute>();
+                            var catAttr = prop.GetCustomAttribute<System.ComponentModel.CategoryAttribute>();
+
+                            if (rosAttr != null || catAttr != null)
+                            {
+                                // A. 智能数据灌入：从字符串字典转为强类型
+                                if (_currentEditingRecipe.Parameters.TryGetValue(prop.Name, out string? strVal))
+                                {
+                                    try
+                                    {
+                                        prop.SetValue(_dummyProxyObject, Convert.ChangeType(strVal, prop.PropertyType));
+                                    }
+                                    catch { /* 忽略转换失败的废弃参数 */ }
+                                }
+                                else if (rosAttr != null && !string.IsNullOrEmpty(rosAttr.DefaultValue))
+                                {
+                                    // 如果字典里没有，用标签里的默认值兜底
+                                    try
+                                    {
+                                        prop.SetValue(_dummyProxyObject, Convert.ChangeType(rosAttr.DefaultValue, prop.PropertyType));
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+
+                                // B. 动态生成 DX 引擎的属性翻译官！
+                                // 这样 UI 就能完美显示我们 [RosProp] 里的中文名和详细描述了
+                                string displayName = rosAttr?.DisplayName ?? prop.GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>()?.DisplayName ?? prop.Name;
+                                string description = rosAttr?.Description ?? prop.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>()?.Description ?? "";
+
+                                var def = new DevExpress.Xpf.PropertyGrid.PropertyDefinition
+                                {
+                                    Path = prop.Name,
+                                    Header = displayName,
+                                    Description = description,
+                                    Tag = "Dynamic" // 标记为动态生成，方便下次清空
+                                };
+                                PropGridParams.PropertyDefinitions.Add(def);
+                            }
+                        }
+
+                        // 4. 将填满数据的强类型影子对象绑定给 UI！
+                        PropGridParams.SelectedObject = _dummyProxyObject;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"生成影子对象失败: {ex.Message}");
+                    }
+                }
+            }
+            else
+            {
+                GrpParams.Caption = "⚙️ 参数配置 (未选择)";
+                PropGridParams.SelectedObject = null;
+                _dummyProxyObject = null;
+            }
+        }
+
+        // ==========================================
+        // 核心反向提取机制：将强类型影子对象转回字典
+        // ==========================================
+        private void SaveProxyToDictionary()
+        {
+            if (_currentEditingRecipe != null && _dummyProxyObject != null)
+            {
+                // 注意：这里不要 Clear()，否则可能会删掉那些代码里没写，但历史遗留的参数
+
+                var props = _dummyProxyObject.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanWrite &&
+                    (p.GetCustomAttribute<NatsROS.Core.Attributes.RosPropAttribute>() != null ||
+                     p.GetCustomAttribute<System.ComponentModel.CategoryAttribute>() != null));
+
+                foreach (var p in props)
+                {
+                    var val = p.GetValue(_dummyProxyObject);
+                    if (val != null)
+                    {
+                        // 把 true 又变回 "True" 存入字典
+                        _currentEditingRecipe.Parameters[p.Name] = val.ToString() ?? "";
+                    }
                 }
             }
         }
 
-        public void Dispose()
+        // 当用户在右侧 PropertyGrid 狂点打钩框或修改数字时触发
+        private void PropGridParams_CellValueChanged(object sender, DevExpress.Xpf.PropertyGrid.CellValueChangedEventArgs e)
         {
-            //throw new NotImplementedException();
+            // 实时把用户的修改刷回底层的字典！
+            SaveProxyToDictionary();
+        }
+
+        // ==========================================
+        // 智能文件浏览拦截器
+        // ==========================================
+        private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is DevExpress.Xpf.Editors.ButtonEdit editor)
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "All Files (*.*)|*.*",
+                    Title = "请选择文件"
+                };
+
+                if (dlg.ShowDialog() == true)
+                {
+                    editor.EditValue = dlg.FileName;
+                }
+            }
         }
     }
 }

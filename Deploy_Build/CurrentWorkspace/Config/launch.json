@@ -4,6 +4,7 @@
       "NodeName": "axis_y1",
       "AssemblyName": "ScrewMachine.HAL",
       "TypeName": "ScrewMachine.HAL.SimulatedAxisNode",
+      "Version": "1.0.0.0",
       "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,
@@ -13,6 +14,7 @@
       "NodeName": "axis_y2",
       "AssemblyName": "ScrewMachine.HAL",
       "TypeName": "ScrewMachine.HAL.SimulatedAxisNode",
+      "Version": "1.0.0.0",
       "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,
@@ -22,24 +24,7 @@
       "NodeName": "motionboard_1",
       "AssemblyName": "ScrewMachine.HAL",
       "TypeName": "ScrewMachine.HAL.MotionControlBoardNode",
-      "Parameters": {},
-      "RestartPolicy": 1,
-      "MaxRetries": 3,
-      "RestartDelaySeconds": 5
-    },
-    {
-      "NodeName": "dispenser_1",
-      "AssemblyName": "ScrewMachine.HAL",
-      "TypeName": "ScrewMachine.HAL.SimulatedDispenserNode",
-      "Parameters": {},
-      "RestartPolicy": 1,
-      "MaxRetries": 3,
-      "RestartDelaySeconds": 5
-    },
-    {
-      "NodeName": "vision_1",
-      "AssemblyName": "ScrewMachine.HAL",
-      "TypeName": "ScrewMachine.HAL.SimulatedVisionNode",
+      "Version": "1.0.0.0",
       "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,
@@ -49,6 +34,7 @@
       "NodeName": "scanner_y1",
       "AssemblyName": "ScrewMachine.HAL",
       "TypeName": "ScrewMachine.HAL.ScannerNode",
+      "Version": "1.0.0.0",
       "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,
@@ -58,6 +44,7 @@
       "NodeName": "scanner_y2",
       "AssemblyName": "ScrewMachine.HAL",
       "TypeName": "ScrewMachine.HAL.ScannerNode",
+      "Version": "1.0.0.0",
       "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,
@@ -67,6 +54,7 @@
       "NodeName": "brain_dispenser",
       "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
       "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Version": "1.0.0.0",
       "Parameters": {
         "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\Deploy_Build\\CurrentWorkspace\\Config\\Tree_Dispenser.xml",
         "AutoStart": "False"
@@ -79,6 +67,7 @@
       "NodeName": "brain_y1",
       "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
       "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Version": "1.0.0.0",
       "Parameters": {
         "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\Deploy_Build\\CurrentWorkspace\\Config\\Tree_Y1.xml",
         "AutoStart": "False"
@@ -91,6 +80,7 @@
       "NodeName": "brain_y2",
       "AssemblyName": "ScrewMachine.MissionControl.MainDirector",
       "TypeName": "ScrewMachine.MissionControl.MainDirector.BrainNode",
+      "Version": "1.0.0.0",
       "Parameters": {
         "TreePath": "E:\\NATROS\\NatsROS\\NatsROS\\Deploy_Build\\CurrentWorkspace\\Config\\Tree_Y2.xml",
         "AutoStart": "False"
@@ -100,9 +90,30 @@
       "RestartDelaySeconds": 5
     },
     {
+      "NodeName": "simulatedvisionnode_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedVisionNode",
+      "Version": "1.0.0.0",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
+      "NodeName": "simulateddispensernode_1",
+      "AssemblyName": "ScrewMachine.HAL",
+      "TypeName": "ScrewMachine.HAL.SimulatedDispenserNode",
+      "Version": "1.0.0.0",
+      "Parameters": {},
+      "RestartPolicy": 1,
+      "MaxRetries": 3,
+      "RestartDelaySeconds": 5
+    },
+    {
       "NodeName": "mockmesnode_1",
       "AssemblyName": "NatsROS.KernelNodes",
-      "TypeName": "NatsROS.KernelNodes.MockMesNode",
+      "TypeName": "NatsROS.KernelNodes.MesDatabaseNode",
+      "Version": "1.0.0.0",
       "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,

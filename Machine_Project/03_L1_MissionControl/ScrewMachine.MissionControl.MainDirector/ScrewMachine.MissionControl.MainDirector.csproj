@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyVersion>1.2026.0821.0</AssemblyVersion>
-    <FileVersion>1.2026.0821.0</FileVersion>
+    <AssemblyVersion>1.2026.0903.0</AssemblyVersion>
+    <FileVersion>1.2026.0903.0</FileVersion>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
@@ -21,10 +21,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Core\NatsROS.Core.csproj" />
-    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Hosting\NatsROS.Hosting.csproj" />
-    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Messages\NatsROS.Messages.csproj" />
-    <ProjectReference Include="..\..\..\NatsROS_Platform\System_Platform\NatsROS.BehaviorTree\NatsROS.BehaviorTree.csproj" />
+    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Core\NatsROS.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Hosting\NatsROS.Hosting.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\NatsROS_Platform\Framework_Core\NatsROS.Messages\NatsROS.Messages.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\NatsROS_Platform\System_Platform\NatsROS.BehaviorTree\NatsROS.BehaviorTree.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\00_Messages\ScrewMachine.Messages\ScrewMachine.Messages.csproj">
+      <Private>False</Private>
+    </ProjectReference>
 
   </ItemGroup>
 

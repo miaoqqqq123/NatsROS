@@ -3,7 +3,7 @@ using NATS.Client.Core;
 using NatsROS.Core.Attributes;
 using NatsROS.Core.Communication;
 using NatsROS.Hosting;
-using NatsROS.Messages.Hardware;
+using ScrewMachine.Messages.Hardware;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

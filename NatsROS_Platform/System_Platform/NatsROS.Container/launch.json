@@ -21,7 +21,7 @@
     {
       "NodeName": "mockmesnode_1",
       "AssemblyName": "NatsROS.KernelNodes",
-      "TypeName": "NatsROS.KernelNodes.MockMesNode",
+      "TypeName": "NatsROS.KernelNodes.MesDatabaseNode",
       "Parameters": {},
       "RestartPolicy": 1,
       "MaxRetries": 3,

@@ -1,4 +1,5 @@
-﻿using NATS.Client.Core;
+﻿using DevExpress.Office.Utils;
+using NATS.Client.Core;
 using NatsROS.Core.Communication;
 using NatsROS.Messages.RMS;
 using System;
@@ -20,6 +21,8 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
         private readonly RosServiceClient<SaveRecipeReq, SaveRecipeRes> _saveClient;
         private readonly RosServiceClient<ChangeRecipeStateReq, ChangeRecipeStateRes> _stateClient;
         private readonly RosServiceClient<GetAuditLogsReq, GetAuditLogsRes> _auditClient;
+        private readonly RosServiceClient<ActivateRecipeReq, ActivateRecipeRes> _activateClient;
+        private readonly CancellationTokenSource _cts = new();
 
         private ObservableCollection<RecipeModel> _recipes = new();
         private ObservableCollection<ParamItem> _currentParams = new();
@@ -33,12 +36,34 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
             _saveClient = new(nats, "rms.save");
             _stateClient = new(nats, "rms.change_state");
             _auditClient = new(nats, "rms.get_audits");
+            _activateClient = new(nats, "rms.activate");
 
             GridRecipes.ItemsSource = _recipes;
             GridParams.ItemsSource = _currentParams;
 
             Loaded += async (s, e) => await RefreshDataAsync();
+
+
+            // 【新增】：永远监听全网的配方更新广播！
+            // 这里使用普通的 SensorData Qos 即可，因为纯粹是 UI 刷新信号
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var updateSub = new RosSubscriber<RecipeUpdatedEvent>(nats, "rms.event.recipe_updated", RosQosProfile.SensorData);
+                    await foreach (var msg in updateSub.SubscribeAsync(_cts.Token))
+                    {
+                        if (msg != null)
+                        {
+                            // 收到任何节点修改了配方，立刻触发本界面的智能刷新！
+                            await RefreshDataAsync();
+                        }
+                    }
+                }
+                catch (OperationCanceledException) { }
+            });
         }
+
 
         private async void BtnRefresh_Click(object sender, RoutedEventArgs e) => await RefreshDataAsync();
 
@@ -46,11 +71,29 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
         {
             try
             {
+                // 1. 记住当前正在看的是哪个配方
+                string selectedId = _currentRecipe?.RecipeId ?? "";
+
+                // 2. 去大管家拉取最新数据
                 var res = await _getRecipesClient.CallAsync(new GetRecipesReq(), TimeSpan.FromSeconds(2));
                 if (res != null)
                 {
-                    _recipes.Clear();
-                    foreach (var r in res.Recipes) _recipes.Add(r);
+                    Dispatcher.Invoke(() =>
+                    {
+                        // 3. 全量替换内存
+                        _recipes.Clear();
+                        foreach (var r in res.Recipes) _recipes.Add(r);
+
+                        // 4. 恢复选中状态（视觉防抖：让用户感觉不到表格被清空过）
+                        if (!string.IsNullOrEmpty(selectedId))
+                        {
+                            var target = _recipes.FirstOrDefault(r => r.RecipeId == selectedId);
+                            if (target != null)
+                            {
+                                GridRecipes.SelectedItem = target;
+                            }
+                        }
+                    });
                 }
             }
             catch (Exception ex) { MessageBox.Show($"获取配方失败: {ex.Message}"); }
@@ -64,7 +107,6 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
             TxtId.Text = _currentRecipe.RecipeId;
             TxtName.Text = _currentRecipe.RecipeName;
             TxtVersion.Text = _currentRecipe.Version;
-            TxtTree.Text = _currentRecipe.ProcedureTreeName;
 
             _currentParams.Clear();
             foreach (var kvp in _currentRecipe.Formula) _currentParams.Add(new ParamItem { Key = kvp.Key, Value = kvp.Value });
@@ -74,7 +116,7 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
 
             // 拉取针对该配方的审计追踪日志
             var auditRes = await _auditClient.CallAsync(new GetAuditLogsReq(_currentRecipe.RecipeId), TimeSpan.FromSeconds(2));
-            if (auditRes != null) 
+            if (auditRes != null)
                 GridAudits.ItemsSource = auditRes.Logs.
                     OrderByDescending(t => t.Timestamp)
                     .Select(t => new
@@ -149,15 +191,15 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
 
         private async void BtnSave_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtChangeReason.Text)) 
-            { 
-                MessageBox.Show("必须填写修改原因！(FDA合规要求)"); 
-                return; 
+            if (string.IsNullOrWhiteSpace(TxtChangeReason.Text))
+            {
+                MessageBox.Show("必须填写修改原因！(FDA合规要求)");
+                return;
             }
             if (string.IsNullOrWhiteSpace(TxtId.Text))
             {
-                MessageBox.Show("配方代码不能为空！"); 
-                return; 
+                MessageBox.Show("配方代码不能为空！");
+                return;
             }
 
             // 【核心防呆】：找出有没有重名的参数 Key
@@ -172,7 +214,7 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
 
             // 安全转换为字典
             var formula = _currentParams.ToDictionary(p => p.Key, p => p.Value);
-            var recipe = new RecipeModel(TxtId.Text, TxtName.Text, TxtVersion.Text, RecipeState.Draft, TxtTree.Text, formula, _operatorName, 0);
+            var recipe = new RecipeModel(TxtId.Text, TxtName.Text, TxtVersion.Text, RecipeState.Draft, formula, _operatorName, 0);
 
             try
             {
@@ -180,13 +222,13 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
                 if (res != null && res.Success) { TxtChangeReason.Text = ""; await RefreshDataAsync(); }
                 else MessageBox.Show(res?.Message ?? "保存超时");
             }
-            catch (Exception ex) 
-            { 
-                MessageBox.Show("报错异常: " + ex.Message); 
-            }
-            finally 
+            catch (Exception ex)
             {
-                BtnSave.IsEnabled = true; 
+                MessageBox.Show("报错异常: " + ex.Message);
+            }
+            finally
+            {
+                BtnSave.IsEnabled = true;
             }
         }
 
@@ -213,7 +255,27 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
 
         public void Dispose()
         {
+            _cts.Cancel();
             //throw new NotImplementedException();
+        }
+
+        // 【新增】：调用激活服务
+        private async void BtnActivate_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentRecipe == null) return;
+
+            // 真实工业场景中，通常只允许激活已批准(Approved)的配方，但为了调试方便，我们先不强制拦截
+            try
+            {
+
+                var res = await _activateClient.CallAsync(new ActivateRecipeReq(_currentRecipe.RecipeId), TimeSpan.FromSeconds(2));
+
+                if (res != null && res.Success)
+                    MessageBox.Show($"✅ 配方 [{_currentRecipe.RecipeName}] 已下发至产线！\n全网节点已同步更新上下文。", "激活成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                else
+                    MessageBox.Show(res?.Message ?? "激活超时");
+            }
+            catch (Exception ex) { MessageBox.Show("激活失败: " + ex.Message); }
         }
     }
 }

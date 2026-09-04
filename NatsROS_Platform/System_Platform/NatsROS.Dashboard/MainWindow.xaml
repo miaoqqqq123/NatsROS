@@ -13,7 +13,8 @@
     Width="1200"
     Height="800"
     Closing="Window_Closing"
-    Loaded="Window_Loaded">
+    Loaded="Window_Loaded"
+    WindowStartupLocation="CenterScreen">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -28,31 +29,107 @@
             Grid.Row="0"
             RibbonStyle="Office2019"
             ShowApplicationButton="False">
+
+            <dxr:RibbonControl.PageHeaderItems>
+                <dxb:BarSubItem
+                    x:Name="MenuUserProfile"
+                    IsVisible="True"
+                    RibbonStyle="All">
+
+                    <!--  【UI 升维魔法】：通过 ContentTemplate 强行放大字体，并增加徽章背景！  -->
+                    <dxb:BarSubItem.ContentTemplate>
+                        <DataTemplate>
+                            <!--  加一个半透明的底色和圆角，看起来像个高级按钮  -->
+                            <Border
+                                Padding="10,4"
+                                Background="#20FFFFFF"
+                                CornerRadius="4">
+                                <StackPanel Orientation="Horizontal">
+                                    <dx:DXImage
+                                        Width="20"
+                                        Height="20"
+                                        Margin="0,0,5,0"
+                                        Source="{dx:DXImage 'SvgImages/Business Objects/BO_User.svg'}" />
+                                    <TextBlock
+                                        FontSize="14"
+                                        FontWeight="Bold"
+                                        Foreground="#00BCD4"
+                                        Text="{Binding}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </dxb:BarSubItem.ContentTemplate>
+
+                    <!--  下拉菜单：展示角色信息 (纯文本，不可点击)  -->
+                    <dxb:BarStaticItem x:Name="MenuRoleInfo" Content="所属角色: --" />
+
+                    <!--  分割线  -->
+                    <dxb:BarItemLinkSeparator />
+
+                    <!--  下拉菜单：切换账号  -->
+                    <dxb:BarButtonItem
+                        x:Name="MenuSwitchUser"
+                        Content="切换账号"
+                        Glyph="{dx:DXImage 'SvgImages/Icon Builder/Actions_User.svg'}"
+                        ItemClick="BtnSwitchUser_ItemClick" />
+                </dxb:BarSubItem>
+
+
+            </dxr:RibbonControl.PageHeaderItems>
+
+            <!--  【修改1】：关闭了 ShowApplicationButton，彻底移除 File 后台菜单  -->
             <dxr:RibbonDefaultPageCategory x:Name="RibbonCategory">
 
-                <!--  【新增】：固定内置的“核心控制”选项卡  -->
-                <dxr:RibbonPage Caption="系统核心 (System Core)">
+                <!--  【修改2】：固定内置的常驻主页 (Home)，不受配置清单影响  -->
+                <dxr:RibbonPage Caption="主页 (Home)">
+
+                    <!--  【新增】：工程与系统管理分组  -->
+                    <dxr:RibbonPageGroup Caption="工程与系统 (Project &amp; System)">
+                        <dxb:BarButtonItem
+                            x:Name="BtnImportExternalProject"
+                            Content="导入外部工程包"
+                            ItemClick="BtnImportExternalProject_ItemClick"
+                            LargeGlyph="{dx:DXImage 'SvgImages/Actions/Open.svg'}"
+                            RibbonStyle="Large" />
+
+                        <dxb:BarButtonItem
+                            x:Name="BtnExportProject"
+                            Content="导出当前工程包"
+                            ItemClick="BtnExportProject_ItemClick"
+                            LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}"
+                            RibbonStyle="Large" />
+
+                        <dxb:BarButtonItem
+                            x:Name="BtnPluginManager"
+                            Content="插件管理器"
+                            ItemClick="BtnPluginManager_ItemClick"
+                            LargeGlyph="{dx:DXImage 'SvgImages/Dashboards/GroupTooltips.svg'}"
+                            RibbonStyle="Large" />
+                    </dxr:RibbonPageGroup>
+
+                    <!--  原有的视图控制分组  -->
                     <dxr:RibbonPageGroup Caption="视图控制 (View Control)">
                         <dxb:BarButtonItem
                             x:Name="BtnSaveLayout"
                             Content="{DynamicResource SaveLayoutBtn}"
                             ItemClick="BtnSaveLayout_ItemClick"
+                            LargeGlyph="{dx:DXImage 'SvgImages/Save/Save.svg'}"
                             RibbonStyle="Large" />
 
                         <dxb:BarButtonItem
                             x:Name="BtnSwitchLang"
                             Content="{DynamicResource LangSwitchBtn}"
                             ItemClick="BtnSwitchLang_ItemClick"
+                            LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Travel_Globe.svg'}"
                             RibbonStyle="Large" />
 
-                        <!--  清空日志按钮  -->
                         <dxb:BarButtonItem
                             x:Name="BtnClearLog"
                             Content="清空日志视图"
                             ItemClick="BtnClearLog_ItemClick"
                             LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Actions_Clear.svg'}"
                             RibbonStyle="Large" />
-                        <!--  快速恢复默认布局  -->
+
                         <dxb:BarButtonItem
                             x:Name="BtnRestoreLayout"
                             Content="{DynamicResource ResetLayoutBtn}"
@@ -61,19 +138,20 @@
                             RibbonStyle="Large" />
                     </dxr:RibbonPageGroup>
 
+                    <!--  原有的主题与皮肤分组  -->
                     <dxr:RibbonPageGroup Caption="主题与皮肤 (Themes)">
-                        <!--  【升级】：使用自带实时预览的 Ribbon 主题画廊  -->
                         <dxr:RibbonGalleryBarItem x:Name="ThemeGallery" Content="切换皮肤 (Themes)">
                             <dxmvvm:Interaction.Behaviors>
-                                <!--  这个魔法行为会自动扫描所有安装的主题，并为你画出分类好的图标！  -->
                                 <dxr:RibbonGalleryItemThemeSelectorBehavior />
                             </dxmvvm:Interaction.Behaviors>
                         </dxr:RibbonGalleryBarItem>
                     </dxr:RibbonPageGroup>
+
                 </dxr:RibbonPage>
 
-                <!--  插件会在代码里动态挂载到这个 Category 后面  -->
+                <!--  动态插件生成的 RibbonPage 会自动挂载到这个 Category 的后面  -->
             </dxr:RibbonDefaultPageCategory>
+
         </dxr:RibbonControl>
 
 
@@ -91,14 +169,13 @@
                     DestroyOnClosingChildren="False"
                     ItemHeight="3*">
 
-                    <!--  【修复】：自适应主题的欢迎大屏  -->
+                    <!--  自适应主题的欢迎大屏  -->
                     <dxd:DocumentPanel
                         x:Name="PanelWelcome"
                         AllowDrag="False"
                         AllowFloat="False"
                         Caption="欢迎使用 (Welcome)"
                         ShowCloseButton="False">
-                        <!--  去掉 Background="#2D2D30"，让它跟随全局主题  -->
                         <Grid>
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <dx:DXImage
@@ -107,7 +184,6 @@
                                     Margin="0,0,0,20"
                                     Source="{dx:DXImage 'SvgImages/Dashboards/Cards.svg'}" />
 
-                                <!--  去掉 Foreground="White"，利用 Opacity 制造高级的灰色视觉差  -->
                                 <TextBlock
                                     FontSize="48"
                                     FontWeight="Bold"
@@ -121,14 +197,12 @@
                                     Text="{DynamicResource SubWelcomeMsg}"
                                     TextAlignment="Center" />
 
-                                <!--  用自带主题引擎的 GroupBox 代替原来写死的黑底 Border  -->
                                 <dxlc:LayoutGroup
                                     Width="600"
                                     Padding="15"
                                     Header="💡 快速开始指南"
                                     Orientation="Vertical"
                                     View="GroupBox">
-                                    <!--  使用 Opacity="0.7" 代替 Foreground="DarkGray"，在黑白主题下都能完美显示  -->
                                     <TextBlock
                                         Margin="0,5"
                                         FontSize="14"
@@ -160,9 +234,8 @@
                     AllowFloat="True"
                     Caption="全局遥测日志 (/rosout) [内置核心]"
                     ItemHeight="1*"
-                    ShowCloseButton="False">
-                    <!--  【修复】：去掉 Background="#1E1E1E" 和 Foreground="White"  -->
-                    <!--  设置 Background="Transparent" 让它完全融合进父级面板的颜色中  -->
+                    ShowCloseButton="False"
+                    ShowPinButton="False">
                     <RichTextBox
                         x:Name="RtbLogs"
                         Background="Transparent"
@@ -179,7 +252,7 @@
         </dxd:DockLayoutManager>
 
         <!--  3. 底部：全局系统状态栏  -->
-        <dxb:StatusBarControl Grid.Row="2">
+        <dxb:StatusBarControl Grid.Row="2" Background="#2D2D30">
             <dxb:BarStaticItem
                 x:Name="StatusConnection"
                 Content="准备连接 NATS..."
@@ -188,6 +261,16 @@
                 x:Name="StatusPluginCount"
                 Alignment="Default"
                 Content="加载了 0 个插件" />
+            <dxb:BarStaticItem
+                x:Name="StatusActiveRecipe"
+                Alignment="Far"
+                Content="当前配方: [空载待命]"
+                Foreground="Orange" />
+            <dxb:BarStaticItem
+                x:Name="StatusCurrentUser"
+                Margin="20,0,0,0"
+                Alignment="Far"
+                Content="👤 用户: 未登录" />
         </dxb:StatusBarControl>
 
     </Grid>

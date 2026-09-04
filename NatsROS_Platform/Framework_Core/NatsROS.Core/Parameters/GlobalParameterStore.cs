@@ -1,9 +1,10 @@
-﻿using System;
+﻿using NatsROS.Core.Environment;
+using NatsROS.Core.Serialization;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using NatsROS.Core.Environment;
 
 namespace NatsROS.Core.Parameters
 {
@@ -33,7 +34,17 @@ namespace NatsROS.Core.Parameters
                     try
                     {
                         var json = File.ReadAllText(FilePath);
-                        var loaded = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json);
+
+                        // 读取时也必须挂载透明解包器！
+                        // 这样它遇到嵌套的 Object 节点时，就会自动把它压扁回 String 存进内存字典
+                        var options = new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                            Converters = { new NatsROS.Core.Serialization.RawJsonDictionaryConverter() }
+                        };
+
+                        var loaded = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json, options);
                         if (loaded != null)
                         {
                             _globalParams = new ConcurrentDictionary<string, Dictionary<string, string>>(loaded);
@@ -77,7 +88,15 @@ namespace NatsROS.Core.Parameters
             {
                 try
                 {
-                    var options = new JsonSerializerOptions { WriteIndented = true };
+                    var options = new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    };
+
+                    // 挂载透明解包器！
+                    options.Converters.Add(new RawJsonDictionaryConverter());
+
                     // 序列化整个宏观的命名空间树
                     string json = JsonSerializer.Serialize(_globalParams, options);
                     File.WriteAllText(FilePath, json);

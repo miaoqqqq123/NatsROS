@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyVersion>1.2026.0903.1</AssemblyVersion>
+		<FileVersion>1.2026.0903.1</FileVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Hexiv.NatsROS.Core" Version="2.0.0" />
+		<PackageReference Include="Hexiv.NatsROS.Messages" Version="2.0.0" />
+	</ItemGroup>
+
+</Project>

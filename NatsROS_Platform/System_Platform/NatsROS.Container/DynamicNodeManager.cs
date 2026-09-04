@@ -159,11 +159,47 @@ public class DynamicNodeManager(IServiceProvider serviceProvider, ILogger<Dynami
         return (false, $"未找到名为 '{nodeName}' 的节点。");
     }
 
-    // 提取节点名和真实的状态枚举
-    public NodeStatusInfo[] GetRunningNodes() =>
-        _runningNodes.Select(kv => new NodeStatusInfo(kv.Key, (byte)kv.Value.CurrentState)).ToArray();
+    /// <summary>
+    /// 提取节点名和真实的状态枚举,从内存档案中提取真实的类名返回，不让前端瞎猜！
+    /// </summary>
+    /// <returns></returns>
+    public NodeStatusInfo[] GetRunningNodes()
+    {
+        return _runningNodes.Select(kv =>
+        {
+            string asmName = "";
+            string typeName = "";
+            string version = "1.0.0.0";
 
-    // 手动切换状态
+            // 1. 提取启动配置
+            if (_nodeConfigs.TryGetValue(kv.Key, out var config))
+            {
+                asmName = config.AssemblyName;
+                typeName = config.TypeName;
+            }
+
+            // 2. 反射提取该节点所在的真实 DLL 的物理版本号！
+            if (kv.Value != null)
+            {
+                try
+                {
+                    // 获取形如 1.2026.0829.1 的版本号
+                    version = kv.Value.GetType().Assembly.GetName().Version?.ToString() ?? "1.0.0.0";
+                }
+                catch { }
+            }
+
+            return new NodeStatusInfo(kv.Key, (byte)kv.Value.CurrentState, asmName, typeName, version);
+
+        }).ToArray();
+    }
+
+    /// <summary>
+    /// 手动切换状态
+    /// </summary>
+    /// <param name="nodeName"></param>
+    /// <param name="targetState"></param>
+    /// <returns></returns>
     public Task<(bool Success, string Message)> ChangeNodeStateAsync(string nodeName, byte targetState)
     {
         if (_runningNodes.TryGetValue(nodeName, out var node))

@@ -1,13 +1,14 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Client.Core;
-using NatsROS.Dashboard.Infrastructure;
+using NatsROS.Core.UI;
 
 namespace NatsROS.Dashboard.Plugins.NodeManager
 {
     public class NodeManagerPlugin : IDashboardPlugin
     {
-        public string RibbonCategory => "系统核心 (System Core)";
+        public string RibbonPage => "系统核心 (System Core)";
+        public string RibbonGroup => "全网诊断 (Diagnostics)";
         public string DisplayName => "母体节点大盘 (Node Manager)";
         public string GlyphPath => "SvgImages/Icon Builder/Security_Assistance.svg";
 

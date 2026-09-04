@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- 业务大屏插件版本号 (以今天的日期作为模板基线) -->
+    <AssemblyVersion>1.2026.0903.1</AssemblyVersion>
+    <FileVersion>1.2026.0903.1</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ========================================== -->
+    <!-- 1. 第三方 UI 库：绝对禁止拷贝到沙盒！(防 DLL Hell) -->
+    <!-- 使用 ExcludeAssets="runtime" 保证编译时能找到它们，但输出时绝对不拷进 Plugins 文件夹 -->
+    <!-- ========================================== -->
+    <PackageReference Include="devexpress.wpf.controls" Version="23.2.3" ExcludeAssets="runtime" />
+    <PackageReference Include="devexpress.wpf.charts" Version="23.2.3" ExcludeAssets="runtime" />
+    <PackageReference Include="HelixToolkit.Wpf" Version="3.1.2" ExcludeAssets="runtime" />
+    <PackageReference Include="MessagePack" Version="3.1.8" ExcludeAssets="runtime" />
+    <PackageReference Include="NATS.Net" Version="2.7.3" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ========================================== -->
+    <!-- 2. NatsROS 核心 SDK：从本地 NuGet 拉取，禁止拷贝！ -->
+    <!-- 开发机台时，再也不需要平台内核的源码了 -->
+    <!-- ========================================== -->
+    <PackageReference Include="Hexiv.NatsROS.Core" Version="2.0.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Hexiv.NatsROS.Messages" Version="2.0.0" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ========================================== -->
+    <!-- 3. 本机专属业务契约库 -->
+    <!-- (注意路径：根据你的实际文件夹层级微调) -->
+    <!-- ========================================== -->
+    <ProjectReference Include="..\..\00_Messages\HexivMachine.Messages\HexivMachine.Messages.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -68,6 +68,10 @@ namespace NatsROS.Dashboard.Models
         public string NodeName { get; set; } = "";
         public byte StateCode { get; set; } // 0:Uncfg, 1:Inactive, 2:Active, 3:Faulted
         public string StateStr { get => _stateStr; set { _stateStr = value; OnPropertyChanged(); } }
+        public string AssemblyName { get; set; } = "";
+        public string TypeName { get; set; } = "";
+        public string Version { get; set; } = "1.0.0.0";
+        public Dictionary<string, string> Parameters { get; set; } = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -106,6 +110,7 @@ namespace NatsROS.Dashboard.Models
     {
         public string AssemblyName { get; set; } = "";
         public string TypeName { get; set; } = "";
+        public string Version { get; set; } = "1.0.0.0";
         // 在 UI 下拉框里显示的漂亮名字
         public string DisplayName { get; set; } = ""; // 从标签读取
         public string Category { get; set; } = "";    // 从标签读取
@@ -142,6 +147,7 @@ namespace NatsROS.Dashboard.Models
         public string NodeName { get; set; } = "";
         public string AssemblyName { get; set; } = "";
         public string TypeName { get; set; } = "";
+        public string Version { get; set; } = "1.0.0.0";
         public Dictionary<string, string> Parameters { get; set; } = new();
 
         public byte RestartPolicy { get => _restartPolicy; set { _restartPolicy = value; OnPropertyChanged(); } }

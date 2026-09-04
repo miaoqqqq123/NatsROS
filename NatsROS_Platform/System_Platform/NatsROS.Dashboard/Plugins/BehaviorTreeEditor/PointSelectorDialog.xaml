@@ -1,0 +1,87 @@
+﻿<dx:ThemedWindow
+    x:Class="NatsROS.Dashboard.Plugins.BehaviorTreeEditor.PointSelectorDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+    xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+    Title="🎯 智能点位与轨迹选择器 (Smart Point Selector)"
+    Width="800"
+    Height="500"
+    ResizeMode="NoResize"
+    ShowIcon="False"
+    WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Grid.Row="0"
+            Margin="0,0,0,10"
+            Foreground="Gray"
+            Text="双击下方表格中的数据行，即可自动填入配置。数据来自全网实时拉取。" />
+
+        <dxg:GridControl
+            x:Name="GridPoints"
+            Grid.Row="1"
+            AutoGenerateColumns="None"
+            MouseDoubleClick="GridPoints_MouseDoubleClick">
+            <dxg:GridControl.View>
+                <!--  开启搜索框，方便过滤  -->
+                <dxg:TableView
+                    AllowEditing="False"
+                    NavigationStyle="Row"
+                    SearchPanelAllowFilter="True"
+                    ShowGroupPanel="False"
+                    ShowSearchPanelMode="Always" />
+            </dxg:GridControl.View>
+
+            <dxg:GridColumn
+                Width="100"
+                FieldName="Source"
+                Header="来源 (Source)" />
+            <dxg:GridColumn
+                Width="200"
+                FieldName="PointName"
+                Header="点位名称 (Name)">
+                <dxg:GridColumn.CellStyle>
+                    <Style TargetType="dxg:LightweightCellEditor">
+
+                        <Setter Property="Foreground" Value="#00BCD4" />
+                    </Style>
+                </dxg:GridColumn.CellStyle>
+            </dxg:GridColumn>
+            <dxg:GridColumn
+                Width="200"
+                FieldName="Coordinates"
+                Header="坐标摘要 (X, Y, Z)" />
+            <dxg:GridColumn
+                Width="*"
+                FieldName="Description"
+                Header="描述 (Description)" />
+        </dxg:GridControl>
+
+        <StackPanel
+            Grid.Row="2"
+            Margin="0,10,0,0"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <dx:SimpleButton
+                Width="100"
+                Height="30"
+                Background="#FF2E7D32"
+                Click="BtnOk_Click"
+                Content="✅ 确 定"
+                Foreground="White" />
+            <dx:SimpleButton
+                Width="100"
+                Height="30"
+                Margin="10,0,0,0"
+                Click="BtnCancel_Click"
+                Content="❌ 取 消" />
+        </StackPanel>
+    </Grid>
+</dx:ThemedWindow>

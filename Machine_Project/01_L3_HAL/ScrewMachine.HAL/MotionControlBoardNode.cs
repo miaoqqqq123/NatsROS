@@ -2,10 +2,11 @@
 using NATS.Client.Core;
 using NatsROS.Core.Attributes;
 using NatsROS.Hosting;
-using NatsROS.Messages.Hardware;
+using ScrewMachine.Messages.Hardware;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using NatsROS.Core.Communication;
 
 namespace ScrewMachine.HAL
 {

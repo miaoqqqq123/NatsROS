@@ -13,6 +13,7 @@ using System.Windows.Media;
 using Color = System.Windows.Media.Color;
 using MessageBox = System.Windows.MessageBox;
 using UserControl = System.Windows.Controls.UserControl;
+using DevExpress.Xpf.Bars; // 【新增】：引入 DevExpress 工具栏命名空间
 
 namespace NatsROS.Dashboard.Plugins.BagPlayer
 {
@@ -51,7 +52,8 @@ namespace NatsROS.Dashboard.Plugins.BagPlayer
         // ==========================================
         // 0. 预扫描网络话题
         // ==========================================
-        private async void BtnRefreshTopics_Click(object sender, RoutedEventArgs e)
+        // 【修正】：将 RoutedEventArgs 替换为 ItemClickEventArgs
+        private async void BtnRefreshTopics_Click(object sender, ItemClickEventArgs e)
         {
             BtnRefreshTopics.IsEnabled = false;
             BtnRefreshTopics.Content = "⏳ 嗅探中...";
@@ -90,7 +92,8 @@ namespace NatsROS.Dashboard.Plugins.BagPlayer
         // ==========================================
         // 1. 极速录制引擎
         // ==========================================
-        private void BtnToggleRecord_Click(object sender, RoutedEventArgs e)
+        // 【修正】：将 RoutedEventArgs 替换为 ItemClickEventArgs
+        private void BtnToggleRecord_Click(object sender, ItemClickEventArgs e)
         {
             if (!_isRecording)
             {
@@ -151,7 +154,7 @@ namespace NatsROS.Dashboard.Plugins.BagPlayer
                             recordItem.TopicType = typeVal.ToString().Split(',')[0].Trim();
                             recordItem.TopicType = typeVal.ToString().Trim();
                         }
-                            
+
 
                         _recordTopicDict[subject] = recordItem;
                         Dispatcher.InvokeAsync(() => RecordTopics.Add(recordItem));
@@ -193,7 +196,7 @@ namespace NatsROS.Dashboard.Plugins.BagPlayer
             _bagOutStream?.Dispose();
 
             BtnToggleRecord.Content = "⏺ 开始录制 (Start Record)";
-            BtnToggleRecord.Background = new SolidColorBrush(Color.FromRgb(255, 221, 221));
+            BtnToggleRecord.Background = new SolidColorBrush(Color.FromRgb(221, 255, 221)); // 稍微改回带点绿色的原本背景
             BtnToggleRecord.Foreground = new SolidColorBrush(Colors.DarkRed);
             LblRecordStats.Content = $"录制结束，共保存 {_recordedMsgCount} 条报文。";
         }
@@ -201,7 +204,8 @@ namespace NatsROS.Dashboard.Plugins.BagPlayer
         // ==========================================
         // 2. 扫盘解析引擎
         // ==========================================
-        private async void BtnLoadBag_Click(object sender, RoutedEventArgs e)
+        // 【修正】：将 RoutedEventArgs 替换为 ItemClickEventArgs
+        private async void BtnLoadBag_Click(object sender, ItemClickEventArgs e)
         {
             var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "NatsROS Bag Files (*.bag)|*.bag" };
             if (dlg.ShowDialog() == true)
@@ -261,7 +265,8 @@ namespace NatsROS.Dashboard.Plugins.BagPlayer
             if (SliderTimeline.IsKeyboardFocusWithin || SliderTimeline.IsMouseOver) _isDraggingSlider = true;
         }
 
-        private void BtnPauseBag_Click(object sender, RoutedEventArgs e)
+        // 【修正】：将 RoutedEventArgs 替换为 ItemClickEventArgs
+        private void BtnPauseBag_Click(object sender, ItemClickEventArgs e)
         {
             _isPaused = !_isPaused; BtnPauseBag.Content = _isPaused ? "▶ 继续" : "⏸ 暂停";
         }
@@ -269,7 +274,8 @@ namespace NatsROS.Dashboard.Plugins.BagPlayer
         // ==========================================
         // 3. 时光倒流引擎
         // ==========================================
-        private async void BtnPlayBag_Click(object sender, RoutedEventArgs e)
+        // 【修正】：将 RoutedEventArgs 替换为 ItemClickEventArgs
+        private async void BtnPlayBag_Click(object sender, ItemClickEventArgs e)
         {
             if (_isPlaying) { _playCts?.Cancel(); return; }
 

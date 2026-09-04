@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Hexiv Automation",
+  "classifications": ["NatsROS", "Industrial", "Automation"],
+  "name": "NatsROS Standard Machine Project",
+  "identity": "Hexiv.NatsROS.Machine.Template",
+  "shortName": "natsros-machine",
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sourceName": "HexivMachine",
+  "preferNameDirectory": true
+}

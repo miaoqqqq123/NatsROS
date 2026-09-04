@@ -15,7 +15,8 @@ public class RosNodeAttribute : Attribute
 
 // ==========================================
 // 2. 参数属性级别的描述标签 (用于未来 UI 自动生成表单)
-// ==========================================[AttributeUsage(AttributeTargets.Property, Inherited = true)]
+// ==========================================
+[AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class RosPropAttribute : Attribute
 {
     public string DisplayName { get; set; } = "";
@@ -28,7 +29,8 @@ public class RosPropAttribute : Attribute
 
 // ==========================================
 // UI 渲染提示标签：告诉 Dashboard 这个字符串是一个文件路径
-// ==========================================[AttributeUsage(AttributeTargets.Property, Inherited = true)]
+// ==========================================
+[AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class FilePathAttribute : Attribute
 {
     // 文件过滤器，比如 "XML Files (*.xml)|*.xml"

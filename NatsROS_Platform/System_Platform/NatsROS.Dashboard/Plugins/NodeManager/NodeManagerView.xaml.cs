@@ -19,8 +19,9 @@ namespace NatsROS.Dashboard.Plugins.NodeManager
         private readonly INatsClient _nats;
         public ObservableCollection<AvailableNodeInfo> AvailableNodes { get; set; } = new();
         public ObservableCollection<NodeItem> RunningNodes { get; set; } = new();
-        private string? _currentEditingNodeName;
-        private DynamicParameterObject? _currentParams;
+
+        private NodeItem? _currentEditingRecipe;
+        private object? _dummyProxyObject;
 
         public NodeManagerView(INatsClient nats)
         {
@@ -37,11 +38,23 @@ namespace NatsROS.Dashboard.Plugins.NodeManager
         {
             try
             {
-                var nodeTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } }).Where(t => typeof(NatsROS.Core.RosNode).IsAssignableFrom(t) && !t.IsAbstract).Where(n => !n.FullName!.Contains("ContainerManagerNode"));
+                var nodeTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } })
+                    .Where(t => typeof(NatsROS.Core.RosNode)
+                    .IsAssignableFrom(t) && !t.IsAbstract)
+                    .Where(n => !n.FullName!.Contains("ContainerManagerNode"));
+
                 foreach (var t in nodeTypes)
                 {
                     var attr = t.GetCustomAttribute<RosNodeAttribute>();
-                    AvailableNodes.Add(new AvailableNodeInfo { AssemblyName = t.Assembly.GetName().Name ?? "", TypeName = t.FullName ?? "", DisplayName = attr?.DisplayName ?? t.Name, Category = attr?.Category ?? "默认" });
+                    AvailableNodes.Add(new AvailableNodeInfo 
+                    {
+                        AssemblyName = t.Assembly.GetName().Name ?? "",
+                        TypeName = t.FullName ?? "",
+                        DisplayName = attr?.DisplayName ?? t.Name, // 优先显示漂亮的中文名
+                        Category = attr?.Category ?? "默认组件",
+                        Description = attr?.Description ?? "无"
+                    });
                 }
             }
             catch { }
@@ -74,7 +87,15 @@ namespace NatsROS.Dashboard.Plugins.NodeManager
                     foreach (var n in res.Data.Nodes)
                     {
                         string s = n.State switch { 0 => "⚪ Unconfigured", 1 => "🟡 Inactive", 2 => "🟢 Active", 3 => "🔴 Faulted", _ => "⚫ Unknown" };
-                        RunningNodes.Add(new NodeItem { NodeName = n.NodeName, StateCode = n.State, StateStr = s });
+                        RunningNodes.Add(new NodeItem
+                        {
+                            NodeName = n.NodeName,
+                            StateCode = n.State,
+                            StateStr = s,
+                            AssemblyName = n.AssemblyName,  // 【新增】接收底层真实数据
+                            TypeName = n.TypeName,          // 【新增】接收底层真实数据
+                            Version = n.Version             // 【新增】：接收底层上报的版本号
+                        });
                     }
                     GridNodes.RefreshData();
                 }
@@ -111,37 +132,168 @@ namespace NatsROS.Dashboard.Plugins.NodeManager
         // 参数热更部分保持原样...
         private async void GridNodes_SelectedItemChanged(object sender, DevExpress.Xpf.Grid.SelectedItemChangedEventArgs e)
         {
-            if (e.NewItem is not NodeItem selectedNode) { GrpNodeParams.Header = "未选择"; PropGridParams.SelectedObject = null; BtnApplyParams.IsEnabled = false; return; }
-            _currentEditingNodeName = selectedNode.NodeName;
-            try
+            SaveProxyToDictionary();
+            _currentEditingRecipe = e.NewItem as NodeItem;
+
+            var dynamicDefs = PropGridParams.PropertyDefinitions.Where(d => d.Tag?.ToString() == "Dynamic").ToList();
+            foreach (var d in dynamicDefs) PropGridParams.PropertyDefinitions.Remove(d);
+
+            if (_currentEditingRecipe != null && !string.IsNullOrEmpty(_currentEditingRecipe.TypeName))
             {
-                var paramClient = new Core.Parameters.RosParameterClient(_nats, _currentEditingNodeName);
-                var keys = await paramClient.ListAsync();
-                _currentParams = new DynamicParameterObject();
-                foreach (var key in keys) { var val = await paramClient.GetAsync(key); if (val != null) _currentParams.Properties[key] = val; }
-                GrpNodeParams.Header = $"热更参数: {_currentEditingNodeName}";
-                PropGridParams.SelectedObject = _currentParams;
-                BtnApplyParams.IsEnabled = _currentParams.Properties.Count > 0;
+                GrpNodeParams.Caption = $"⚙️ 参数配置: {_currentEditingRecipe.NodeName} (实时拉取中...)";
+                PropGridParams.SelectedObject = null;
+                BtnApplyParams.IsEnabled = false;
+
+                try
+                {
+                    // 1. 去底层参数服务器拉取该节点真实的当前参数
+                    var paramClient = new NatsROS.Core.Parameters.RosParameterClient(_nats, _currentEditingRecipe.NodeName);
+                    var keys = await paramClient.ListAsync();
+
+                    _currentEditingRecipe.Parameters.Clear();
+                    foreach (var key in keys)
+                    {
+                        var val = await paramClient.GetAsync(key);
+                        if (val != null) _currentEditingRecipe.Parameters[key] = val;
+                    }
+
+                    // ==========================================
+                    // 2. 【直接使用底层上报的真实类全名进行反射！】
+                    // ==========================================
+                    var targetType = AppDomain.CurrentDomain.GetAssemblies()
+                        .SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } })
+                        .FirstOrDefault(t => t.FullName == _currentEditingRecipe.TypeName);
+
+                    if (targetType != null)
+                    {
+                        try
+                        {
+                            _dummyProxyObject = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(targetType);
+                            var props = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                            foreach (var prop in props)
+                            {
+                                var rosAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.RosPropAttribute>();
+                                var catAttr = prop.GetCustomAttribute<System.ComponentModel.CategoryAttribute>();
+
+                                if (rosAttr != null || catAttr != null)
+                                {
+                                    if (_currentEditingRecipe.Parameters.TryGetValue(prop.Name, out string? strVal))
+                                    {
+                                        try { prop.SetValue(_dummyProxyObject, Convert.ChangeType(strVal, prop.PropertyType)); } catch { }
+                                    }
+                                    else if (rosAttr != null && !string.IsNullOrEmpty(rosAttr.DefaultValue))
+                                    {
+                                        try { prop.SetValue(_dummyProxyObject, Convert.ChangeType(rosAttr.DefaultValue, prop.PropertyType)); } catch { }
+                                    }
+
+                                    string displayName = rosAttr?.DisplayName ?? prop.GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>()?.DisplayName ?? prop.Name;
+                                    string description = rosAttr?.Description ?? prop.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>()?.Description ?? "";
+
+                                    var def = new DevExpress.Xpf.PropertyGrid.PropertyDefinition
+                                    {
+                                        Path = prop.Name,
+                                        Header = displayName,
+                                        Description = description,
+                                        Tag = "Dynamic"
+                                    };
+                                    PropGridParams.PropertyDefinitions.Add(def);
+                                }
+                            }
+
+                            PropGridParams.SelectedObject = _dummyProxyObject;
+                            GrpNodeParams.Caption = $"⚙️ 参数热更: {_currentEditingRecipe.NodeName}";
+                            BtnApplyParams.IsEnabled = true;
+                        }
+                        catch { }
+                    }
+                    else
+                    {
+                        GrpNodeParams.Caption = $"⚠️ 未在内存中找到类: {_currentEditingRecipe.TypeName}";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"拉取参数失败: {ex.Message}");
+                }
             }
-            catch { }
+            else
+            {
+                GrpNodeParams.Caption = "⚙️ 节点参数热更 (未选择或缺少类信息)";
+                PropGridParams.SelectedObject = null;
+                _dummyProxyObject = null;
+                BtnApplyParams.IsEnabled = false;
+            }
+
         }
+
         private async void BtnApplyParams_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(_currentEditingNodeName) || _currentParams == null) return;
+            if (string.IsNullOrEmpty(_currentEditingRecipe.NodeName) || _currentEditingRecipe == null) return;
+            
             BtnApplyParams.IsEnabled = false;
+            BtnApplyParams.Content = "⏳ 下发中...";
+
             try
             {
-                var paramClient = new Core.Parameters.RosParameterClient(_nats, _currentEditingNodeName);
-                foreach (var kvp in _currentParams.Properties) await paramClient.SetAsync(kvp.Key, kvp.Value);
-                MessageBox.Show("参数更新成功！");
+                // 1. 确保最新数据都在字典里
+                SaveProxyToDictionary();
+
+                // 2. 发送到大管家的参数服务器
+                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(_nats, _currentEditingRecipe.NodeName);
+                foreach (var kvp in _currentEditingRecipe.Parameters)
+                {
+                    await paramClient.SetAsync(kvp.Key, kvp.Value);
+                }
+
+                MessageBox.Show("✅ 参数热更新成功！已通过 NATS 瞬间下发并生效。", "更新成功", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch { }
-            finally { BtnApplyParams.IsEnabled = true; }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"更新失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                BtnApplyParams.IsEnabled = true;
+                BtnApplyParams.Content = "🔥 下发热更新 (Apply)";
+            }
         }
 
         public void Dispose()
         {
             //throw new NotImplementedException();
         }
+
+        // 当用户在右侧 PropertyGrid 狂点打钩框或修改数字时触发
+        private void PropGridParams_CellValueChanged(object sender, DevExpress.Xpf.PropertyGrid.CellValueChangedEventArgs e)
+        {
+            // 每次用户在 UI 上打钩或修改数字，实时保存到本地内存字典（不下发）
+            SaveProxyToDictionary();
+        }
+
+
+        // ==========================================
+        // 核心反向提取机制：将强类型影子对象转回字典
+        // ==========================================
+        private void SaveProxyToDictionary()
+        {
+            if (_currentEditingRecipe != null && _dummyProxyObject != null)
+            {
+                var props = _dummyProxyObject.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanWrite &&
+                                (p.GetCustomAttribute<NatsROS.Core.Attributes.RosPropAttribute>() != null ||
+                                 p.GetCustomAttribute<System.ComponentModel.CategoryAttribute>() != null));
+
+                foreach (var p in props)
+                {
+                    var val = p.GetValue(_dummyProxyObject);
+                    if (val != null)
+                    {
+                        _currentEditingRecipe.Parameters[p.Name] = val.ToString() ?? "";
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -7,6 +7,7 @@ using NatsROS.Messages.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 
 namespace NatsROS.KernelNodes
 {
@@ -32,7 +33,11 @@ namespace NatsROS.KernelNodes
 
         private string _rolesPath = "";
         private string _usersPath = "";
-        private readonly JsonSerializerOptions _jsonOpts = new() { WriteIndented = true };
+        private readonly JsonSerializerOptions _jsonOpts = new()
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
 
         protected override Task OnConfigureAsync(CancellationToken ct)
         {

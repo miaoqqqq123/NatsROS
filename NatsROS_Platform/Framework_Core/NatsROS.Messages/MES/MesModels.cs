@@ -12,8 +12,10 @@ public record ProductRecord(
     [property: Key(1)] long Timestamp,
     [property: Key(2)] bool IsPass,
     [property: Key(3)] double CycleTimeSec,
-    [property: Key(4)] double OffsetX,
-    [property: Key(5)] double OffsetY, [property: Key(6)] double Angle
+
+    //取消固定的 OffsetX/Y，改为支持无限扩展的双字典结构
+    [property: Key(4)] Dictionary<string, double> NumericMetrics, // 用于散点图/折线图
+    [property: Key(5)] Dictionary<string, string> StringInfos     // 用于报表明细与追溯
 ) : IRosMessage;
 
 // MES 数据上传 RPC
