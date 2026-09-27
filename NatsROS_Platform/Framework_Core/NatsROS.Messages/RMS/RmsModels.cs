@@ -1,8 +1,19 @@
 ﻿using MessagePack;
 using NatsROS.Core;
-using System.Collections.Generic;
+using NatsROS.Core.Serialization;
+using System.Text.Json.Serialization;
 
 namespace NatsROS.Messages.RMS;
+
+// ==========================================
+// 【新增】：配方模式识别标签
+// ==========================================
+[AttributeUsage(AttributeTargets.Class)]
+public class RecipeSchemaAttribute : Attribute
+{
+    public string DisplayName { get; }
+    public RecipeSchemaAttribute(string displayName) => DisplayName = displayName;
+}
 
 // 配方生命周期状态
 public enum RecipeState : byte
@@ -21,7 +32,17 @@ public record RecipeModel(
     [property: Key(1)] string RecipeName,         // 产品名称 (如 "苹果 iPhone 15 散热板")
     [property: Key(2)] string Version,            // 版本号 (如 "V1.0")
     [property: Key(3)] RecipeState State,         // 当前状态
-    [property: Key(5)] Dictionary<string, string> Formula, // 工艺参数配方表 (速度、坐标文件、安全高度等)
+    // 【核心革命】：摒弃弱类型字典，拥抱强类型 JSON 载荷！
+    [property: Key(4)] string SchemaType,  // 记录这个配方是由哪个 C# 类定义的
+   
+    // ==========================================
+    // 【核心魔法】：指定专属的 JSON 解包器！
+    // 这样在通过 MessagePack 走网线时它是字符串，落盘到 SQLite 或 JSON 文件时，自动舒展开来！
+    // ==========================================
+    [property: Key(5)]
+    [property: JsonConverter(typeof(RawJsonStringConverter))]
+    string PayloadJson,
+
     [property: Key(6)] string LastModifiedBy,     // 最后修改人
     [property: Key(7)] long LastModifiedTime      // 最后修改时间戳
 ) : IRosMessage;

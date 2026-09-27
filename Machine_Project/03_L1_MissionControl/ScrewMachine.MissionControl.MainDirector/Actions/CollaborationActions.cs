@@ -1,6 +1,4 @@
-﻿using Hexiv.BehaviorTree.Attributes;
-using Hexiv.BehaviorTree.Core;
-using NATS.Client.Core;
+﻿using NATS.Client.Core;
 using NatsROS.Core.Communication;
 using NatsROS.Core.SystemMessages;
 using ScrewMachine.Messages.Hardware;
@@ -10,6 +8,9 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using NatsROS.BehaviorTree.Attributes;
+using NatsROS.BehaviorTree.Core;
+using NatsROS.Messages.Hardware;
 
 namespace ScrewMachine.MissionControl.MainDirector.Actions
 {
@@ -39,11 +40,11 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
             // 每隔 100ms 查一次，因为 Task.Delay 会释放线程，所以几乎不消耗 CPU
             while (!ct.IsCancellationRequested)
             {
-                var res = await getIoClient.CallAsync(new GetIoReq(Pin), TimeSpan.FromSeconds(1), ct);
-                if (res != null && res.Success && res.State == TargetState)
-                {
-                    return BtNodeStatus.Success; // 信号到了，放行！
-                }
+                //var res = await getIoClient.CallAsync(new GetIoReq(Pin), TimeSpan.FromSeconds(1), ct);
+                //if (res != null && res.Success && res.State == TargetState)
+                //{
+                //    return BtNodeStatus.Success; // 信号到了，放行！
+                //}
                 await Task.Delay(100, ct);
             }
             return BtNodeStatus.Failure;

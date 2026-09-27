@@ -1,6 +1,4 @@
-﻿using Hexiv.BehaviorTree.Attributes;
-using Hexiv.BehaviorTree.Core;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using NATS.Client.Core;
 using NatsROS.Core.Communication;
 using NatsROS.Core.SystemMessages;
@@ -14,6 +12,8 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NatsROS.BehaviorTree.Attributes;
+using NatsROS.BehaviorTree.Core;
 
 namespace ScrewMachine.MissionControl.MainDirector.Actions
 {
@@ -70,7 +70,7 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
             // 3. 【核心魔法】：向参数服务器索要该工站的绝对物理原点偏移
             // 为了方便演示，如果没有配置，我们就用对应 3D 孪生画板里的绝对坐标：
             // Y1 在 X=-60, Y=100 处； Y2 在 X=60, Y=100 处
-            var paramClient = new NatsROS.Core.Parameters.RosParameterClient(nats, "brain_dispenser");
+            var paramClient = new NatsROS.Core.Parameters.RosParameterClient(nats, "container_manager");
 
             double baseX = 0;
             double baseY = 0;

@@ -1,28 +1,15 @@
-﻿using DevExpress.Xpf.Grid;
-using NATS.Client.Core;
+﻿using NATS.Client.Core;
 using NatsROS.Core;
 using NatsROS.Core.Attributes;
 using NatsROS.Core.SystemMessages;
 using NatsROS.Dashboard.Models;
-using System;
-using System.Collections.Generic;
+using NatsROS.Dashboard.Plugins.NodeManager;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using MessageBox = System.Windows.MessageBox;
 using UserControl = System.Windows.Controls.UserControl;
 
@@ -219,10 +206,24 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
                         {
                             // 只处理打了 [RosProp] 标签，或者兼容你旧的 [Category] 标签的属性
                             var rosAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.RosPropAttribute>();
+                            var scopeAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.ParameterScopeAttribute>();
                             var catAttr = prop.GetCustomAttribute<System.ComponentModel.CategoryAttribute>();
 
                             if (rosAttr != null || catAttr != null)
                             {
+                                // 【核心拦截】：如果是专属运行时标定的参数，绝对不让它出现在开机配方里！
+                                if (scopeAttr != null && scopeAttr.Scope == NatsROS.Core.Attributes.RosPropScope.Runtime)
+                                {
+                                    // 强制告诉 DevExpress 隐藏这个属性！
+                                    PropGridParams.PropertyDefinitions.Add(new DevExpress.Xpf.PropertyGrid.PropertyDefinition
+                                    {
+                                        Path = prop.Name,
+                                        Visibility = System.Windows.Visibility.Collapsed
+                                    });
+                                    continue;
+                                }
+                                   
+
                                 // A. 智能数据灌入：从字符串字典转为强类型
                                 if (_currentEditingRecipe.Parameters.TryGetValue(prop.Name, out string? strVal))
                                 {
@@ -256,6 +257,49 @@ namespace NatsROS.Dashboard.Plugins.RecipeEditor
                                     Description = description,
                                     Tag = "Dynamic" // 标记为动态生成，方便下次清空
                                 };
+
+                                // ==========================================
+                                // 【核心修复】：把节点管理器里的 IO 标签选择器魔法，完美复刻过来！
+                                // ==========================================
+                                if (prop.GetCustomAttribute<NatsROS.Core.Attributes.IoTagSelectorAttribute>() != null)
+                                {
+                                    var btnSettings = new DevExpress.Xpf.Editors.Settings.ButtonEditSettings { AllowDefaultButton = true, IsTextEditable = true };
+                                    btnSettings.DefaultButtonClick += (s, args) =>
+                                    {
+                                        // 呼叫智能 IO 标签选择弹窗
+                                        var dlg = new IoTagSelectorDialog(_nats) { Owner = Window.GetWindow(this) };
+                                        if (dlg.ShowDialog() == true && s is DevExpress.Xpf.Editors.ButtonEdit editor)
+                                        {
+                                            // 将选中的标签赋给输入框
+                                            editor.EditValue = dlg.SelectedTag;
+                                        }
+                                    };
+                                    def.EditSettings = btnSettings;
+                                }
+
+                                // ==========================================
+                                // 【魔法 2 (新增)】：拦截 FilePath 特性，生成文件浏览按钮！
+                                // ==========================================
+                                var fileAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.FilePathAttribute>();
+                                if (fileAttr != null)
+                                {
+                                    var btnSettings = new DevExpress.Xpf.Editors.Settings.ButtonEditSettings { AllowDefaultButton = true, IsTextEditable = true };
+                                    btnSettings.DefaultButtonClick += (s, args) =>
+                                    {
+                                        // 弹出 Windows 原生文件选择对话框
+                                        var dlg = new Microsoft.Win32.OpenFileDialog
+                                        {
+                                            Filter = fileAttr.Filter,
+                                            Title = "请选择文件"
+                                        };
+                                        if (dlg.ShowDialog() == true && s is DevExpress.Xpf.Editors.ButtonEdit editor)
+                                        {
+                                            editor.EditValue = dlg.FileName;
+                                        }
+                                    };
+                                    def.EditSettings = btnSettings;
+                                }
+
                                 PropGridParams.PropertyDefinitions.Add(def);
                             }
                         }

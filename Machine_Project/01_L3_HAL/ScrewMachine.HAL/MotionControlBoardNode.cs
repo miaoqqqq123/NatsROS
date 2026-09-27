@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using NatsROS.Core.Communication;
+using NatsROS.Messages.Hardware;
 
 namespace ScrewMachine.HAL
 {
@@ -38,17 +39,17 @@ namespace ScrewMachine.HAL
             var setIoServer = CreateServer<SetIoReq, SetIoRes>($"{Name}.io.set");
             _ = setIoServer.ServeAsync(async req =>
             {
-                if (req.Pin < 0 || req.Pin >= 32) return new SetIoRes(false, "引脚越界");
+                //if (req.Pin < 0 || req.Pin >= 32) return new SetIoRes(false, "引脚越界");
 
                 // 【模拟底层 SDK 调用耗时与锁】
-                lock (_sdkLock)
-                {
-                    _outPins[req.Pin] = req.State;
-                    // 假设调用 C++ SDK 函数: Leisai_WriteOutBit(0, req.Pin, req.State);
-                }
+                //lock (_sdkLock)
+                //{
+                //    _outPins[req.Pin] = req.State;
+                //    // 假设调用 C++ SDK 函数: Leisai_WriteOutBit(0, req.Pin, req.State);
+                //}
 
                 // IO 状态改变，向全网广播 (供大屏的指示灯使用！)
-                if (_ioPub != null) await _ioPub.PublishAsync(new IoStateChangedMsg(req.Pin, req.State));
+                //if (_ioPub != null) await _ioPub.PublishAsync(new IoStateChangedMsg(req.Pin, req.State));
 
                 // 故意加一点物理通讯延迟
                 await Task.Delay(10, stoppingToken);
@@ -59,7 +60,7 @@ namespace ScrewMachine.HAL
             var getIoServer = CreateServer<GetIoReq, GetIoRes>($"{Name}.io.get");
             _ = getIoServer.ServeAsync(req =>
             {
-                if (_outPins.TryGetValue(req.Pin, out bool state)) return Task.FromResult(new GetIoRes(state, true));
+                //if (_outPins.TryGetValue(req.Pin, out bool state)) return Task.FromResult(new GetIoRes(state, true));
                 return Task.FromResult(new GetIoRes(false, false));
             }, stoppingToken);
 

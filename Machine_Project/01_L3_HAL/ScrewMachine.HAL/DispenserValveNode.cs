@@ -8,6 +8,7 @@ using ScrewMachine.Messages.Hardware;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NatsROS.Messages.Hardware;
 
 namespace ScrewMachine.HAL
 {
@@ -32,13 +33,13 @@ namespace ScrewMachine.HAL
                     if (req.Open)
                     {
                         Logger.LogInformation("💧 下发开胶信号 (Pin={Pin})... 等待出胶延迟 {Ms}ms", valvePin, openDelayMs);
-                        await ioClient.CallAsync(new SetIoReq(valvePin, true));
+                        //await ioClient.CallAsync(new SetIoReq(valvePin, true));
                         await Task.Delay(openDelayMs, stoppingToken); // 气缸建立气压的物理延迟
                     }
                     else
                     {
                         Logger.LogInformation("🛑 下发断胶信号 (Pin={Pin})... 等待回吸延迟 {Ms}ms", valvePin, closeDelayMs);
-                        await ioClient.CallAsync(new SetIoReq(valvePin, false));
+                        //await ioClient.CallAsync(new SetIoReq(valvePin, false));
                         await Task.Delay(closeDelayMs, stoppingToken); // 胶水回吸防止拉丝的延迟
                     }
                     return new ValveControlRes(true);

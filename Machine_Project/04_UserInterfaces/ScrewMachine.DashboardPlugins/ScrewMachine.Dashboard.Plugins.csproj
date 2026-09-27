@@ -4,15 +4,15 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<!-- 【版本号控制】：跟着机型业务走 -->
-		<AssemblyVersion>1.2026.0903.1</AssemblyVersion>
-		<FileVersion>1.2026.0903.1</FileVersion>
+		<AssemblyVersion>1.2026.0922.1</AssemblyVersion>
+		<FileVersion>1.2026.0922.1</FileVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- 引入 DevExpress 和 第三方库，绝对禁止拷贝到沙盒！ -->
-		<PackageReference Include="devexpress.wpf.controls" Version="23.2.3" ExcludeAssets="runtime" />
-		<PackageReference Include="devexpress.wpf.charts" Version="23.2.3" ExcludeAssets="runtime" />
-		<PackageReference Include="devexpress.wpf.diagram" Version="23.2.3" />
+		<PackageReference Include="devexpress.wpf.controls" Version="24.2.7" ExcludeAssets="runtime" />
+		<PackageReference Include="devexpress.wpf.charts" Version="24.2.7" ExcludeAssets="runtime" />
+		<PackageReference Include="devexpress.wpf.diagram" Version="24.2.7" />
 		<PackageReference Include="HelixToolkit.Wpf" Version="3.1.2" ExcludeAssets="runtime" />
 		<PackageReference Include="MessagePack" Version="3.1.8" ExcludeAssets="runtime" />
 		<PackageReference Include="NATS.Net" Version="2.7.3" ExcludeAssets="runtime" />
@@ -32,16 +32,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="BehaviorTree\BehaviorTreeView.xaml.cs">
-	    <SubType>Code</SubType>
-	  </Compile>
 	  <Compile Update="DigitalTwin\DigitalTwinView.xaml.cs">
 	    <SubType>Code</SubType>
 	  </Compile>
 	  <Compile Update="HalConsole\HalConsoleView.xaml.cs">
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="MesReport\MesReportView.xaml.cs">
 	    <SubType>Code</SubType>
 	  </Compile>
 	  <Compile Update="PointStudio\PointStudioView.xaml.cs">

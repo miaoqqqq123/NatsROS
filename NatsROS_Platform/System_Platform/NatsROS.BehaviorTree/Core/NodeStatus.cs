@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Hexiv.BehaviorTree.Core
+﻿namespace NatsROS.BehaviorTree.Core
 {
     // 完全对标 BehaviorTree.CPP 的状态
     //public enum BtNodeStatus : byte

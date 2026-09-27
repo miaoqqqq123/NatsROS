@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "启动母体 (Debug Container)": {
+      "commandName": "Executable",
+      "executablePath": "C:\\NatsROS\\Bin\\NatsROS.Container.exe",
+      "workingDirectory": "C:\\NatsROS\\Bin",
+      "environmentVariables": {
+        "NATSROS_DEV_ROOT": "E:\\NATROS\\NatsROS\\NatsROS\\NatsROS_Templates\\MachineTemplate\\Deploy_Build"
+      }
+    }
+  }
+}

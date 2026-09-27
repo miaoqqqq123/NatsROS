@@ -5,6 +5,7 @@ using NatsROS.Messages.RMS;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -39,7 +40,6 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
             _activateClient = new(nats, "rms.activate");
 
             GridRecipes.ItemsSource = _recipes;
-            GridParams.ItemsSource = _currentParams;
 
             Loaded += async (s, e) => await RefreshDataAsync();
 
@@ -102,14 +102,40 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
         private async void GridRecipes_SelectedItemChanged(object sender, DevExpress.Xpf.Grid.SelectedItemChangedEventArgs e)
         {
             _currentRecipe = e.NewItem as RecipeModel;
-            if (_currentRecipe == null) return;
+            if (_currentRecipe == null)
+            {
+                PropGridParams.SelectedObject = null;
+                return;
+            }
 
             TxtId.Text = _currentRecipe.RecipeId;
             TxtName.Text = _currentRecipe.RecipeName;
             TxtVersion.Text = _currentRecipe.Version;
 
-            _currentParams.Clear();
-            foreach (var kvp in _currentRecipe.Formula) _currentParams.Add(new ParamItem { Key = kvp.Key, Value = kvp.Value });
+            // 【神级反射】：根据 SchemaType 从内存找到类，并反序列化 JSON
+            Type? schemaType = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } })
+                .FirstOrDefault(t => t.FullName == _currentRecipe.SchemaType);
+
+            if (schemaType != null && !string.IsNullOrEmpty(_currentRecipe.PayloadJson))
+            {
+                try
+                {
+                    var opts = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var shadowObj = System.Text.Json.JsonSerializer.Deserialize(_currentRecipe.PayloadJson, schemaType, opts);
+
+                    // 【核心修复】：应用我们的动态 UI 拦截规则！
+                    BuildDynamicPropertyDefinitions(schemaType);
+
+                    // 将强类型对象直接塞给 UI！
+                    PropGridParams.SelectedObject = shadowObj;
+                }
+                catch { PropGridParams.SelectedObject = null; }
+            }
+            else
+            {
+                PropGridParams.SelectedObject = null;
+            }
 
             // 统一刷新按钮与界面的权限状态
             UpdateUiState(_currentRecipe.State);
@@ -139,7 +165,7 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
             // 只有草稿能保存、能审批、能改参数
             BtnSave.IsEnabled = isDraft;
             BtnApprove.IsEnabled = isDraft;
-            GridParams.View.AllowEditing = isDraft;
+            //GridParams.View.AllowEditing = isDraft;
             TxtId.IsReadOnly = !isDraft;
             TxtName.IsReadOnly = !isDraft;
             TxtVersion.IsReadOnly = !isDraft;
@@ -177,58 +203,74 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
 
         private void BtnNew_Click(object sender, RoutedEventArgs e)
         {
+            // 扫描内存中所有的 [RecipeSchema] 类
+            var schemaTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => { try { return a.GetTypes(); } catch { return Type.EmptyTypes; } })
+                .Where(t => t.GetCustomAttribute<RecipeSchemaAttribute>() != null)
+                .ToList();
+
+            if (schemaTypes.Count == 0)
+            {
+                MessageBox.Show("未在当前加载的业务库中找到任何配方类 (需带有 [RecipeSchema] 标签)！");
+                return;
+            }
+
+            // 默认取第一个（因为专机通常只有一套配方类结构）
+            Type targetType = schemaTypes.First();
+
+            // 实例化空对象，触发默认值
+            object newSchemaObj = Activator.CreateInstance(targetType)!;
+
             _currentRecipe = null;
-            TxtId.Text = "RECIPE_NEW_001"; TxtName.Text = "新产品配方"; TxtVersion.Text = "V1.0";
-            _currentParams.Clear();
-            _currentParams.Add(new ParamItem { Key = "Velocity", Value = "30" });
-            _currentParams.Add(new ParamItem { Key = "SafeZ", Value = "50" });
-            BtnSave.IsEnabled = true; BtnApprove.IsEnabled = false; GridParams.View.AllowEditing = true;
-            GridAudits.ItemsSource = null;
+            TxtId.Text = "RECIPE_NEW_001";
+            TxtName.Text = "新产品配方"; 
+            TxtVersion.Text = "V1.0";
+
+            // 【核心修复】：新建配方时，同样需要应用动态 UI 拦截规则！
+            BuildDynamicPropertyDefinitions(targetType);
+
+            PropGridParams.SelectedObject = newSchemaObj;
+
+            BtnSave.IsEnabled = true; 
+            BtnApprove.IsEnabled = false; 
+            //PropGridParams.IsReadOnly = false;
         }
 
-        private void BtnAddParam_Click(object sender, RoutedEventArgs e) => _currentParams.Add(new ParamItem { Key = "NewParam", Value = "0" });
-        private void BtnDelParam_Click(object sender, RoutedEventArgs e) { if (GridParams.SelectedItem is ParamItem p) _currentParams.Remove(p); }
 
         private async void BtnSave_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtChangeReason.Text))
-            {
-                MessageBox.Show("必须填写修改原因！(FDA合规要求)");
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(TxtId.Text))
-            {
-                MessageBox.Show("配方代码不能为空！");
-                return;
-            }
-
-            // 【核心防呆】：找出有没有重名的参数 Key
-            var duplicateKeys = _currentParams.GroupBy(p => p.Key).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
-            if (duplicateKeys.Count > 0)
-            {
-                MessageBox.Show($"保存失败！发现重复的参数名:\n{string.Join(", ", duplicateKeys)}\n请修改后再保存。", "参数冲突", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(TxtChangeReason.Text)) { MessageBox.Show("必须填写修改原因！"); return; }
+            if (PropGridParams.SelectedObject == null) return;
 
             BtnSave.IsEnabled = false;
-
-            // 安全转换为字典
-            var formula = _currentParams.ToDictionary(p => p.Key, p => p.Value);
-            var recipe = new RecipeModel(TxtId.Text, TxtName.Text, TxtVersion.Text, RecipeState.Draft, formula, _operatorName, 0);
-
             try
             {
-                var res = await _saveClient.CallAsync(new SaveRecipeReq(recipe, _operatorName, TxtChangeReason.Text), TimeSpan.FromSeconds(2));
-                if (res != null && res.Success) { TxtChangeReason.Text = ""; await RefreshDataAsync(); }
-                else MessageBox.Show(res?.Message ?? "保存超时");
+                // 将 UI 上被修改过的对象，重新序列化为 JSON 字符串
+                var opts = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
+                string updatedJson = System.Text.Json.JsonSerializer.Serialize(PropGridParams.SelectedObject, opts);
+
+                string schemaFullName = PropGridParams.SelectedObject.GetType().FullName ?? "";
+
+                var recipe = new RecipeModel(TxtId.Text, TxtName.Text, TxtVersion.Text, RecipeState.Draft,
+                    schemaFullName, updatedJson,
+                    NatsROS.Dashboard.Security.GlobalSecurityContext.CurrentUser?.DisplayName ?? "Unknown", 0);
+
+                var res = await _saveClient.CallAsync(new SaveRecipeReq(recipe, recipe.LastModifiedBy, TxtChangeReason.Text), TimeSpan.FromSeconds(2));
+                if (res != null && res.Success)
+                { 
+                    TxtChangeReason.Text = ""; 
+                    await RefreshDataAsync(); 
+                }
+                else 
+                    MessageBox.Show(res?.Message ?? "保存超时");
             }
             catch (Exception ex)
             {
                 MessageBox.Show("报错异常: " + ex.Message);
             }
             finally
-            {
-                BtnSave.IsEnabled = true;
+            { 
+                BtnSave.IsEnabled = true; 
             }
         }
 
@@ -275,7 +317,56 @@ namespace NatsROS.Dashboard.Plugins.RecipeStudio
                 else
                     MessageBox.Show(res?.Message ?? "激活超时");
             }
-            catch (Exception ex) { MessageBox.Show("激活失败: " + ex.Message); }
+            catch (Exception ex) 
+            { 
+                MessageBox.Show("激活失败: " + ex.Message);
+            }
+        }
+
+        private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is DevExpress.Xpf.Editors.ButtonEdit editor)
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "All Files (*.*)|*.*" };
+                if (dlg.ShowDialog() == true) editor.EditValue = dlg.FileName;
+            }
+        }
+
+        // ==========================================
+        // 动态属性拦截器：扫描并注入特殊 UI 控件
+        // ==========================================
+        private void BuildDynamicPropertyDefinitions(Type schemaType)
+        {
+            // 1. 每次先清空历史拦截规则
+            PropGridParams.PropertyDefinitions.Clear();
+
+            // 2. 遍历类的所有属性，寻找我们需要特殊处理的标签
+            var props = schemaType.GetProperties();
+            foreach (var prop in props)
+            {
+                // 拦截 [FilePath] 标签
+                var fileAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.FilePathAttribute>();
+                if (fileAttr != null)
+                {
+                    var def = new DevExpress.Xpf.PropertyGrid.PropertyDefinition { Path = prop.Name };
+                    var btnSettings = new DevExpress.Xpf.Editors.Settings.ButtonEditSettings { AllowDefaultButton = true, IsTextEditable = true };
+
+                    btnSettings.DefaultButtonClick += (s, args) =>
+                    {
+                        var dlg = new Microsoft.Win32.OpenFileDialog
+                        {
+                            Filter = fileAttr.Filter,
+                            Title = "请选择文件"
+                        };
+                        if (dlg.ShowDialog() == true && s is DevExpress.Xpf.Editors.ButtonEdit editor)
+                        {
+                            editor.EditValue = dlg.FileName;
+                        }
+                    };
+                    def.EditSettings = btnSettings;
+                    PropGridParams.PropertyDefinitions.Add(def);
+                }
+            }
         }
     }
 }

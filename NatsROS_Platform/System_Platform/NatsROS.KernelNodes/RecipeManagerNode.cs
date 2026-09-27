@@ -123,18 +123,54 @@ namespace NatsROS.KernelNodes
                 }
 
                 string diffDetails = "";
-                if (!isNew)
+                if (!isNew && oldR!.PayloadJson != newR.PayloadJson)
                 {
-                    var oldFormula = oldR!.Formula;
-                    var newFormula = newR.Formula;
                     var diffs = new List<string>();
+                    try
+                    {
+                        // 1. 将旧的与新的 PayloadJson 动态解析为 JsonObject
+                        var oldNode = System.Text.Json.Nodes.JsonNode.Parse(oldR.PayloadJson) as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();
+                        var newNode = System.Text.Json.Nodes.JsonNode.Parse(newR.PayloadJson) as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();
 
-                    foreach (var key in newFormula.Keys.Intersect(oldFormula.Keys))
-                        if (newFormula[key] != oldFormula[key]) diffs.Add($"[{key}]由'{oldFormula[key]}'变为'{newFormula[key]}'");
-                    foreach (var key in newFormula.Keys.Except(oldFormula.Keys)) diffs.Add($"新增参数[{key}]='{newFormula[key]}'");
-                    foreach (var key in oldFormula.Keys.Except(newFormula.Keys)) diffs.Add($"删除了参数[{key}]");
+                        // 2. 找出被修改或新增的参数
+                        foreach (var kvp in newNode)
+                        {
+                            string key = kvp.Key;
+                            string newValStr = kvp.Value?.ToJsonString() ?? "null";
 
-                    if (diffs.Count > 0) diffDetails = "系统捕获变更: " + string.Join("; ", diffs);
+                            if (oldNode.TryGetPropertyValue(key, out var oldValNode))
+                            {
+                                string oldValStr = oldValNode?.ToJsonString() ?? "null";
+                                if (newValStr != oldValStr)
+                                {
+                                    // 【智能排版】：如果改的是巨大无比的点位或轨迹，不要把几百行的JSON全打进日志里！
+                                    if (key.StartsWith("RecipePoint_") || key.StartsWith("RecipeTraj_"))
+                                        diffs.Add($"[点位/轨迹] {key} 数据已更新");
+                                    else
+                                        diffs.Add($"[{key}] 由 {oldValStr} 变为 {newValStr}");
+                                }
+                            }
+                            else
+                            {
+                                diffs.Add($"[新增] 参数 {key} = {newValStr}");
+                            }
+                        }
+
+                        // 3. 找出被删除的参数
+                        foreach (var kvp in oldNode)
+                        {
+                            if (!newNode.ContainsKey(kvp.Key))
+                            {
+                                diffs.Add($"[删除] 参数 {kvp.Key}");
+                            }
+                        }
+
+                        if (diffs.Count > 0) diffDetails = "系统捕获变更:\r\n" + string.Join("\r\n", diffs);
+                    }
+                    catch (Exception ex)
+                    {
+                        diffDetails = "系统捕获变更: 强类型配方工艺参数已被修改 (JSON 比对失败: " + ex.Message + ")";
+                    }
                 }
 
                 newR = newR with

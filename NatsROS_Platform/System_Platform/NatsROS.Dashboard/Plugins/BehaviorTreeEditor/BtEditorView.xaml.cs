@@ -1,6 +1,4 @@
 ﻿using DevExpress.Xpf.Bars;
-using Hexiv.BehaviorTree.Attributes;
-using Hexiv.BehaviorTree.Core;
 using NATS.Client.Core;
 using NatsROS.Core.SystemMessages;
 using NatsROS.Dashboard.Models;
@@ -13,6 +11,8 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
+using NatsROS.BehaviorTree.Attributes;
+using NatsROS.BehaviorTree.Core;
 using MessageBox = System.Windows.MessageBox;
 using UserControl = System.Windows.Controls.UserControl;
 

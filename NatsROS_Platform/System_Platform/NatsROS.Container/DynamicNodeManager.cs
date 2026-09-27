@@ -34,8 +34,31 @@ public class DynamicNodeManager(IServiceProvider serviceProvider, ILogger<Dynami
 
         try
         {
+            // 【核心增强】：按需动态加载 (On-Demand Loading)
+            // 如果是在母体启动之后才被人放进 Plugins 文件夹的 DLL，系统内存里肯定没有。
+            // 我们主动去沙盒里找它，把它吸入内存！
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            if (!loadedAssemblies.Any(a => a.GetName().Name == config.AssemblyName))
+            {
+                string nodesPath = NatsROS.Core.Environment.WorkspaceManager.GetPluginsNodesPath();
+                string dllPath = Path.Combine(nodesPath, $"{config.AssemblyName}.dll");
+
+                if (File.Exists(dllPath))
+                {
+                    try { Assembly.LoadFrom(dllPath); logger.LogInformation("🔄 按需动态加载了新的扩展库: {Dll}", dllPath); }
+                    catch (Exception ex) { logger.LogWarning("⚠️ 动态加载 {Dll} 失败: {Msg}", dllPath, ex.Message); }
+                }
+            }
+
+            // 尝试获取类型
             var targetType = Type.GetType($"{config.TypeName}, {config.AssemblyName}");
-            if (targetType == null) return (false, $"找不到类型: {config.TypeName}");
+            if (targetType == null)
+            {
+                // 【核心修复】：如果连按需加载都找不到，必须向 /rosout 抛出刺眼的红字报警！
+                string errStr = $"实例化失败！未在内存中找到类 '{config.TypeName}'。请检查 '{config.AssemblyName}.dll' 是否已正确放置在沙盒的 Plugins/Nodes 目录下。";
+                logger.LogError(errStr);
+                return (false, errStr);
+            }
 
             // 利用 DI 容器实例化节点
             var nodeInstance = (HostedRosNode)ActivatorUtilities.CreateInstance(serviceProvider, targetType, config.NodeName);

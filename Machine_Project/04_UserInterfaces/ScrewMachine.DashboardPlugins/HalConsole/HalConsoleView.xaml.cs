@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 using NATS.Client.Core;
 using NatsROS.Core.Communication;
+using NatsROS.Messages.Hardware;
 using ScrewMachine.Messages.Hardware;
 using ScrewMachine.Messages.Motion;
 using Button = System.Windows.Controls.Button;
@@ -78,10 +79,10 @@ namespace ScrewMachine.Dashboard.Plugins.HalConsole
                         Dispatcher.InvokeAsync(() =>
                         {
                             // 瞬间点亮或熄灭对应的按钮！
-                            if (pinData.Pin >= 0 && pinData.Pin < 32)
-                            {
-                                IoPins[pinData.Pin].IsHigh = pinData.State;
-                            }
+                            //if (pinData.Pin >= 0 && pinData.Pin < 32)
+                            //{
+                            //    IoPins[pinData.Pin].IsHigh = pinData.State;
+                            //}
                         });
                     }
                 }
@@ -102,9 +103,9 @@ namespace ScrewMachine.Dashboard.Plugins.HalConsole
                 try
                 {
                     var ioClient = new RosServiceClient<SetIoReq, SetIoRes>(_nats, $"{NODE_BOARD}.io.set");
-                    var res = await ioClient.CallAsync(new SetIoReq(pinId, targetState), TimeSpan.FromSeconds(2));
+                    //var res = await ioClient.CallAsync(new SetIoReq(pinId, targetState), TimeSpan.FromSeconds(2));
 
-                    if (res == null || !res.Success) MessageBox.Show($"写入引脚 {pinId} 失败！请检查板卡节点是否在线。");
+                    //if (res == null || !res.Success) MessageBox.Show($"写入引脚 {pinId} 失败！请检查板卡节点是否在线。");
                 }
                 catch (Exception ex) { MessageBox.Show($"通讯异常: {ex.Message}"); }
             }

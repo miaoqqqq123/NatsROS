@@ -3,18 +3,35 @@
 		<!-- 1. 定义部署的绝对根目录变量 -->
 		<DeployRootDir>$(MSBuildThisFileDirectory)Deploy_Build\</DeployRootDir>
 
-		<!-- 2. 【核心魔法】：智能输出路由 (基于物理目录的血统判定) -->
+		<!-- 2. 标记这是机台业务工程 -->
 		<IsMachineProject>true</IsMachineProject>
+	</PropertyGroup>
 
-		<!-- 输出路径路由：强制让新机台的业务代码，统统编译进沙盒！ -->
-		<OutputPath>$(DeployRootDir)CurrentWorkspace\Plugins\</OutputPath>
+	<!-- ========================================== -->
+	<!-- 【核心魔法：智能物理分舱】根据项目基因，自动分配输出目录 -->
+	<!-- ========================================== -->
+	<PropertyGroup>
+		<!-- 1. 基因判定：如果是契约库 -->
+		<_PluginCategory Condition="$(MSBuildProjectName.EndsWith('.Messages'))">Messages</_PluginCategory>
 
+		<!-- 2. 基因判定：如果物理目录路径中包含 04_UserInterfaces，那就是 UI 前端插件！ -->
+		<_PluginCategory Condition="'$(_PluginCategory)' == '' And $(MSBuildProjectDirectory.Contains('04_UserInterfaces'))">UI</_PluginCategory>
+
+		<!-- 3. 兜底判定：剩下的（HAL, Sequencers, MissionControl）全都是纯逻辑的后端节点引擎 -->
+		<_PluginCategory Condition="'$(_PluginCategory)' == ''">Nodes</_PluginCategory>
+
+		<!-- 最终输出路径：Plugins/Messages/ 或 Plugins/UI/ 或 Plugins/Nodes/ -->
+		<OutputPath>$(DeployRootDir)CurrentWorkspace\Plugins\$(_PluginCategory)\</OutputPath>
+	</PropertyGroup>
+
+	<!-- ========================================== -->
+	<!-- 全局通用编译属性配置 -->
+	<!-- ========================================== -->
+	<PropertyGroup>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 
-		<!-- ========================================== -->
 		<!-- 依赖拷贝隔离：机台业务绝对不拷贝 NATS 和 DevExpress（复用母体核心资源） -->
-		<!-- ========================================== -->
 		<CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
 
 		<!-- 3. 统一 C# 代码规范 -->

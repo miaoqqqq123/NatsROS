@@ -53,10 +53,11 @@ public enum AlarmLevel : byte
 }
 
 public enum AlarmStatus : byte
-{ 
-    Raised = 0, 
+{
+    Raised = 0,
     Acknowledged = 1,
-    Cleared = 2 
+    Cleared = 2,
+    Bypassed = 3 
 }
 
 // ==========================================
@@ -95,8 +96,9 @@ public record ActiveAlarmState(
     [property: Key(3)] AlarmStatus Status,
     [property: Key(4)] long FirstRaisedTime,
     [property: Key(5)] long LastRaisedTime,
-    [property: Key(6)] int Occurrences, // 发生次数（用于防风暴统计）
-    [property: Key(7)] bool IsLatching
+    [property: Key(6)] int Occurrences,         // 发生次数（用于防风暴统计）
+    [property: Key(7)] bool IsLatching,
+    [property: Key(8)] bool AllowBypass         //该报警能否被右键屏蔽
 ) : IRosMessage;
 
 // ==========================================
@@ -104,7 +106,8 @@ public record ActiveAlarmState(
 // ==========================================
 [MessagePackObject]
 public record AckAlarmReq(
-    [property: Key(0)] string Code
+    [property: Key(0)] string Code,
+    [property: Key(1)] string OperatorName
 ) : IRosRequest<AckAlarmRes>; 
 
 [MessagePackObject]
@@ -126,3 +129,31 @@ public record SyncAlarmsRes(
 public record AlarmsChangedEvent(
     [property: Key(0)] List<ActiveAlarmState> ActiveAlarms
 ) : IRosMessage;
+
+// ==========================================
+// AEM 历史记录与 Bypass 契约
+// ==========================================
+[MessagePackObject]
+public record AlarmHistoryRecord(
+    [property: Key(0)] long Timestamp,
+    [property: Key(1)] string Code,
+    [property: Key(2)] string Action, // 如: 触发(Raised), 确认(Acked), 恢复(Cleared), 屏蔽(Bypassed)
+    [property: Key(3)] string Operator,
+    [property: Key(4)] string Details
+) : IRosMessage;
+
+[MessagePackObject]
+public record GetAlarmHistoryReq([property: Key(0)] int Limit = 1000) : IRosRequest<GetAlarmHistoryRes>;
+
+[MessagePackObject]
+public record GetAlarmHistoryRes([property: Key(0)] List<AlarmHistoryRecord> Records) : IRosMessage;
+
+[MessagePackObject]
+public record BypassAlarmReq(
+    [property: Key(0)] string Code,
+    [property: Key(1)] int DurationMinutes,
+    [property: Key(2)] string Operator
+) : IRosRequest<BypassAlarmRes>;
+
+[MessagePackObject]
+public record BypassAlarmRes([property: Key(0)] bool Success, [property: Key(1)] string Message) : IRosMessage;

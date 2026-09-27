@@ -12,6 +12,15 @@ namespace NatsROS.Core.Environment
         // 这里需要往上退一级，因为当前运行的 EXE 是在 Bin 目录里的！
         private static string GetSystemRoot()
         {
+            // 开发者 F5 调试劫持后门！
+            // 只要检测到 VS 传来的环境变量，系统根目录瞬间被重定向到本地工程！
+            string? devRoot = System.Environment.GetEnvironmentVariable("NATSROS_DEV_ROOT");
+            if (!string.IsNullOrEmpty(devRoot))
+            {
+                return Path.GetFullPath(devRoot); 
+            }
+
+            // 生产环境的默认寻址逻辑：退回上一级目录 (因为 EXE 在 Bin 下)
             string binPath = AppDomain.CurrentDomain.BaseDirectory;
             return Path.GetFullPath(Path.Combine(binPath, ".."));
         }
@@ -85,6 +94,37 @@ namespace NatsROS.Core.Environment
         public static string GetProductionDataPath(string projectName)
         {
             string path = Path.Combine(GetSystemRoot(), "ProductionData", projectName, DateTime.Now.ToString("yyyyMMdd"));
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return path;
+        }
+
+        // ==========================================
+        // 4. 动态插件沙盒区 (智能分舱)
+        // ==========================================
+        public static string GetPluginsDirectoryPath()
+        {
+            string path = Path.Combine(CurrentWorkspacePath, "Plugins");
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return path;
+        }
+
+        public static string GetPluginsMessagesPath()
+        {
+            string path = Path.Combine(GetPluginsDirectoryPath(), "Messages");
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return path;
+        }
+
+        public static string GetPluginsNodesPath()
+        {
+            string path = Path.Combine(GetPluginsDirectoryPath(), "Nodes");
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            return path;
+        }
+
+        public static string GetPluginsUiPath()
+        {
+            string path = Path.Combine(GetPluginsDirectoryPath(), "UI");
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
             return path;
         }

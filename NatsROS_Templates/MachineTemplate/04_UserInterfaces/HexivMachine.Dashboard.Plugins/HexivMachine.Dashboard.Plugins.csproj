@@ -6,8 +6,8 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- 业务大屏插件版本号 (以今天的日期作为模板基线) -->
-    <AssemblyVersion>1.2026.0903.1</AssemblyVersion>
-    <FileVersion>1.2026.0903.1</FileVersion>
+    <AssemblyVersion>1.2026.0908.1</AssemblyVersion>
+    <FileVersion>1.2026.0908.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +36,9 @@
     <!-- 3. 本机专属业务契约库 -->
     <!-- (注意路径：根据你的实际文件夹层级微调) -->
     <!-- ========================================== -->
-    <ProjectReference Include="..\..\00_Messages\HexivMachine.Messages\HexivMachine.Messages.csproj" />
+    <ProjectReference Include="..\..\00_Messages\HexivMachine.Messages\HexivMachine.Messages.csproj">
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

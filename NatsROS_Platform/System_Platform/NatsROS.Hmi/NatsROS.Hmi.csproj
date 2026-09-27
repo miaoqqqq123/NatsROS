@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="devexpress.wpf.grid.core" Version="23.2.3" />
-    <PackageReference Include="devexpress.wpf.layoutcontrol" Version="23.2.3" />
+    <PackageReference Include="devexpress.wpf.grid.core" Version="24.2.7" />
+    <PackageReference Include="devexpress.wpf.layoutcontrol" Version="24.2.7" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="DevExpress.Xpf.Themes.Win11Dark.v23.2">
-      <HintPath>bin\Debug\net8.0-windows\DevExpress.Xpf.Themes.Win11Dark.v23.2.dll</HintPath>
+    <Reference Include="DevExpress.Xpf.Themes.Win11Dark.v24.2">
+      
     </Reference>
   </ItemGroup>
 

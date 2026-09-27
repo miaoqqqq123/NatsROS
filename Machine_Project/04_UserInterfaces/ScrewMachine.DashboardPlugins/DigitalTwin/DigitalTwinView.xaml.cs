@@ -8,6 +8,8 @@ using NATS.Client.Core;
 using NatsROS.Core.Communication;
 using NatsROS.Core.Parameters;
 using NatsROS.Core.SystemMessages;
+using NatsROS.Messages.Hardware;
+using NatsROS.Messages.Motion;
 using ScrewMachine.Messages.Hardware;
 using ScrewMachine.Messages.Motion;
 using Color = System.Windows.Media.Color;
@@ -91,7 +93,7 @@ namespace ScrewMachine.Dashboard.Plugins.DigitalTwin
                 {
                     var importer = new ModelImporter();
                     // 默认从沙盒的 Assets 目录下找
-                    string modelsDir = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "Assets", "3DModels"));
+                    string modelsDir = Path.Combine(NatsROS.Core.Environment.WorkspaceManager.CurrentWorkspacePath, "Assets", "3DModels");
                     if (!Directory.Exists(modelsDir))
                     {
                         Directory.CreateDirectory(modelsDir);
@@ -167,19 +169,19 @@ namespace ScrewMachine.Dashboard.Plugins.DigitalTwin
         {
             Dispatcher.InvokeAsync(() =>
             {
-                // 约定：Pin 0 是 Y1 站的物料光电传感器
-                if (msg.Pin == 0)
-                {
-                    // 如果 Pin 0 为 True，显示物料；为 False，隐藏物料。就这么简单粗暴！
-                    if (msg.State) GlueLinesY1.Points.Clear(); // 每次上新料前，顺便把废胶清掉
-                    SetProductVisible(ProductY1Container, msg.State, _y1SkewTransform);
-                }
-                // 约定：Pin 1 是 Y2 站的物料光电传感器
-                else if (msg.Pin == 1)
-                {
-                    if (msg.State) GlueLinesY2.Points.Clear();
-                    SetProductVisible(ProductY2Container, msg.State, _y2SkewTransform);
-                }
+                //// 约定：Pin 0 是 Y1 站的物料光电传感器
+                //if (msg.Pin == 0)
+                //{
+                //    // 如果 Pin 0 为 True，显示物料；为 False，隐藏物料。就这么简单粗暴！
+                //    if (msg.State) GlueLinesY1.Points.Clear(); // 每次上新料前，顺便把废胶清掉
+                //    SetProductVisible(ProductY1Container, msg.State, _y1SkewTransform);
+                //}
+                //// 约定：Pin 1 是 Y2 站的物料光电传感器
+                //else if (msg.Pin == 1)
+                //{
+                //    if (msg.State) GlueLinesY2.Points.Clear();
+                //    SetProductVisible(ProductY2Container, msg.State, _y2SkewTransform);
+                //}
             });
         }
 

@@ -8,32 +8,48 @@
 		<!-- 只要代码文件位于 Machine_Project 文件夹下，统统视为机型专属业务包！ -->
 		<!-- ========================================== -->
 		<IsMachineProject Condition="$(MSBuildProjectDirectory.Contains('Machine_Project'))">true</IsMachineProject>
+	</PropertyGroup>
 
-		<!-- 输出路径路由 -->
-		<!-- 机台业务代码（UI、硬件驱动、消息契约）：全部关进沙盒！ -->
-		<OutputPath Condition="'$(IsMachineProject)' == 'true'">$(DeployRootDir)CurrentWorkspace\Plugins\</OutputPath>
+	<!-- ========================================== -->
+	<!-- 【新增核心魔法：智能物理分舱】根据项目基因，自动分配输出目录 -->
+	<!-- ========================================== -->
+	<PropertyGroup Condition="'$(IsMachineProject)' == 'true'">
+		<!-- 1. 基因判定：如果是契约库 -->
+		<_PluginCategory Condition="$(MSBuildProjectName.EndsWith('.Messages'))">Messages</_PluginCategory>
 
-		<!-- 操作系统内核（NatsROS_Platform）：万剑归宗到 Bin 目录 -->
-		<OutputPath Condition="'$(IsMachineProject)' != 'true'">$(DeployRootDir)Bin\</OutputPath>
+		<!-- 2. 基因判定：如果物理目录路径中包含 04_UserInterfaces，那就是 UI 前端插件！ -->
+		<_PluginCategory Condition="'$(_PluginCategory)' == '' And $(MSBuildProjectDirectory.Contains('04_UserInterfaces'))">UI</_PluginCategory>
 
-		<!-- ========================================== -->
-		<!-- 【新增】：SDK 打包输出路由 -->
-		<!-- 只有核心框架库在编译时，才会把生成的 NuGet 包放进 SDK 专属目录 -->
-		<!-- ========================================== -->
-		<PackageOutputPath Condition="'$(IsMachineProject)' != 'true'">$(DeployRootDir)SDK_Packages\</PackageOutputPath>
-		
+		<!-- 3. 兜底判定：剩下的（HAL, Sequencers, MissionControl）全都是纯逻辑的后端节点引擎 -->
+		<_PluginCategory Condition="'$(_PluginCategory)' == ''">Nodes</_PluginCategory>
+		<!-- 最终输出路径：Plugins/Messages/ 或 Plugins/UI/ 或 Plugins/Nodes/ -->
+		<OutputPath>$(DeployRootDir)CurrentWorkspace\Plugins\$(_PluginCategory)\</OutputPath>
+	</PropertyGroup>
+
+	<!-- ========================================== -->
+	<!-- 操作系统内核（NatsROS_Platform）：万剑归宗到 Bin 目录 -->
+	<!-- SDK 打包输出路由：只有核心框架库才会放进 SDK 目录 -->
+	<!-- ========================================== -->
+	<PropertyGroup Condition="'$(IsMachineProject)' != 'true'">
+		<OutputPath>$(DeployRootDir)Bin\</OutputPath>
+		<PackageOutputPath>$(DeployRootDir)SDK_Packages\</PackageOutputPath>
+	</PropertyGroup>
+
+	<!-- ========================================== -->
+	<!-- 全局通用编译属性配置 -->
+	<!-- ========================================== -->
+	<PropertyGroup>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 
-		<!-- ========================================== -->
 		<!-- 依赖拷贝隔离：OS核心拷贝依赖，机台业务不拷贝（复用核心资源） -->
-		<!-- ========================================== -->
 		<CopyLocalLockFileAssemblies Condition="'$(IsMachineProject)' != 'true'">true</CopyLocalLockFileAssemblies>
 		<CopyLocalLockFileAssemblies Condition="'$(IsMachineProject)' == 'true'">false</CopyLocalLockFileAssemblies>
 
-		<!-- 3. 统一 C# 代码规范 -->
+		<!-- 统一 C# 代码规范 -->
 		<LangVersion>latest</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
+
 </Project>

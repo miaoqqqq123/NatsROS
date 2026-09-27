@@ -1,0 +1,56 @@
+﻿<Project>
+  <!-- ========================================== -->
+  <!-- 🌟 全局拦截与动态调试配置注入 -->
+  <!-- 根据项目所在的物理目录，智能判断它是 UI 还是后台节点，从而生成对应的启动项 -->
+  <!-- ========================================== -->
+
+  <!-- 1. 检查环境变量 (只警告一次即可) -->
+  <Target Name="CheckNatsRosHome" BeforeTargets="PrepareForBuild" Condition="'$(NATSROS_HOME)' == ''">
+    <Warning Text="NATSROS_HOME 环境变量未找到！请确保已安装 NatsROS 平台，并重启 Visual Studio。" />
+  </Target>
+
+  <!-- 2. 核心生成逻辑 (剔除不需要启动的 Messages 契约库) -->
+  <!-- 【修正】：把 .Contains 移到了 $() 的内部 -->
+  <Target Name="AutoGenerateLaunchSettings" 
+          BeforeTargets="PrepareForBuild" 
+          Condition="'$(NATSROS_HOME)' != '' And !$(MSBuildProjectName.Contains('Messages'))">
+    
+    <MakeDir Directories="Properties" />
+
+    <!-- 【智能路由 A】：如果不是 UI 目录，说明是底层的业务节点，生成拉起 Container 母体的配置 -->
+    <PropertyGroup Condition="!$(MSBuildProjectDirectory.Contains('04_UserInterfaces'))">
+      <_ProfileName>启动母体 (Debug Container)</_ProfileName>
+      <_ExeName>NatsROS.Container.exe</_ExeName>
+    </PropertyGroup>
+
+    <!-- 【智能路由 B】：如果是 UI 目录，说明是大屏插件，生成拉起 Dashboard 大屏的配置 -->
+    <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('04_UserInterfaces'))">
+      <_ProfileName>启动大屏 (Debug Dashboard)</_ProfileName>
+      <_ExeName>NatsROS.Dashboard.exe</_ExeName>
+    </PropertyGroup>
+
+    <!-- 组装 JSON 骨架 -->
+    <PropertyGroup>
+      <_Json><![CDATA[{
+  "profiles": {
+    "PROFILE_NAME_PLACEHOLDER": {
+      "commandName": "Executable",
+      "executablePath": "PATH_PLACEHOLDER\\Bin\\EXE_NAME_PLACEHOLDER",
+      "workingDirectory": "PATH_PLACEHOLDER\\Bin",
+      "environmentVariables": {
+        "NATSROS_DEV_ROOT": "SOL_PLACEHOLDERDeploy_Build"
+      }
+    }
+  }
+}]]></_Json>
+      <!-- 字符串替换黑魔法 -->
+      <_Json>$(_Json.Replace('PROFILE_NAME_PLACEHOLDER', $(_ProfileName)))</_Json>
+      <_Json>$(_Json.Replace('EXE_NAME_PLACEHOLDER', $(_ExeName)))</_Json>
+      <_Json>$(_Json.Replace('PATH_PLACEHOLDER', $(NATSROS_HOME.Replace('\', '\\'))))</_Json>
+      <_Json>$(_Json.Replace('SOL_PLACEHOLDER', $(MSBuildThisFileDirectory.Replace('\', '\\'))))</_Json>
+    </PropertyGroup>
+
+    <!-- 写入文件。WriteOnlyWhenDifferent=true 防止文件没变化时也触发覆盖，导致 VS 弹窗 -->
+    <WriteLinesToFile File="Properties\launchSettings.json" Lines="$(_Json)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+</Project>

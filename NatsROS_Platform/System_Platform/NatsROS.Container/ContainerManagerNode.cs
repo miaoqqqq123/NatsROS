@@ -25,6 +25,12 @@ public class ContainerManagerNode(INatsClient nats, ILogger<ContainerManagerNode
         {
             Logger.LogInformation("收到加载节点请求: {TypeName} -> {NodeName}", req.TypeName, req.NodeName);
             var result = await nodeManager.LoadNodeFromReqAsync(req);
+            // 根据结果打上明确的出口日志
+            if (result.Success)
+                Logger.LogInformation("📤 加载响应 [成功]: {NodeName}", req.NodeName);
+            else
+                Logger.LogWarning("📤 加载响应 [失败]: {NodeName} - {Msg}", req.NodeName, result.Message);
+
             return new LoadNodeRes(result.Success, result.Message);
         }, stoppingToken);
 
@@ -32,6 +38,12 @@ public class ContainerManagerNode(INatsClient nats, ILogger<ContainerManagerNode
         {
             Logger.LogInformation("收到卸载节点请求: {NodeName}", req.NodeName);
             var result = await nodeManager.StopAndUnloadNodeAsync(req.NodeName);
+            // 根据结果打上明确的出口日志
+            if (result.Success)
+                Logger.LogInformation("📤 卸载响应 [成功]: {NodeName}", req.NodeName);
+            else
+                Logger.LogWarning("📤 卸载响应 [失败]: {NodeName} - {Msg}", req.NodeName, result.Message);
+
             return new UnloadNodeRes(result.Success, result.Message);
         }, stoppingToken);
 
@@ -47,6 +59,12 @@ public class ContainerManagerNode(INatsClient nats, ILogger<ContainerManagerNode
         {
             Logger.LogInformation("收到状态切换请求: {Node} -> {State}", req.NodeName, req.TargetState);
             var result = await nodeManager.ChangeNodeStateAsync(req.NodeName, req.TargetState);
+            // 根据结果打上明确的出口日志
+            if (result.Success)
+                Logger.LogInformation("📤 切换响应 [成功]: {NodeName}", req.NodeName);
+            else
+                Logger.LogWarning("📤 切换响应 [失败]: {NodeName} - {Msg}", req.NodeName, result.Message);
+
             return new ChangeStateRes(result.Success);
         }, stoppingToken);
 

@@ -1,15 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NatsROS.Container;
 using NatsROS.Container.Models;
 using NatsROS.Hosting;
+using NatsROS.KernelNodes;
 using NLog.Extensions.Logging;
 using System.Reflection;
 using System.Text.Json;
-using NatsROS.KernelNodes;
-using ScrewMachine.HAL;
-using System.Threading.Tasks;
 
 namespace NatsROS.Container
 {
@@ -23,13 +20,13 @@ namespace NatsROS.Container
             try
             {
                 string binPath = AppDomain.CurrentDomain.BaseDirectory;
-                string deployRoot = Path.GetFullPath(Path.Combine(binPath, "..")); // 退回 Deploy 根目录
+                // 【绝杀】：使用 WorkspaceManager 获取当前沙盒的真实插件路径
+                string workspacePluginsDir = Path.Combine(NatsROS.Core.Environment.WorkspaceManager.CurrentWorkspacePath, "Plugins");
 
-                // 寻找我们需要扫描的文件夹
                 string[] searchDirs = {
                     binPath,
-                    Path.Combine(deployRoot, "Organs"),
-                    Path.Combine(deployRoot, "Plugins")
+                    NatsROS.Core.Environment.WorkspaceManager.GetPluginsMessagesPath(), // 吃进跨端契约
+                    NatsROS.Core.Environment.WorkspaceManager.GetPluginsNodesPath()     // 吃进后端驱动和动作
                 };
 
                 foreach (var dir in searchDirs)
@@ -37,17 +34,7 @@ namespace NatsROS.Container
                     if (!Directory.Exists(dir)) continue;
 
                     // 只要不是微软、第三方基础库的 DLL，我们全部吸入内存！
-                    var dllFiles = Directory.GetFiles(dir, "*.dll", SearchOption.TopDirectoryOnly)
-                        .Where(f =>
-                        {
-                            string name = Path.GetFileName(f);
-                            return !name.StartsWith("System.") &&
-                                   !name.StartsWith("Microsoft.") &&
-                                   !name.StartsWith("DevExpress.") &&
-                                   !name.StartsWith("NATS.") &&
-                                   !name.StartsWith("NLog") &&
-                                   !name.StartsWith("MessagePack");
-                        });
+                    var dllFiles = Directory.GetFiles(dir, "*.dll", SearchOption.TopDirectoryOnly);
 
                     foreach (var dll in dllFiles)
                     {
@@ -70,11 +57,11 @@ namespace NatsROS.Container
             // 1. 创建现代化的后台主机构建器
             var builder = Host.CreateApplicationBuilder(args);
 
-            // 【核心】：将其注册为 Windows 服务！(在 Linux 下可以无缝忽略，或者改为 Systemd)
-            builder.Services.AddWindowsService(options =>
-            {
-                options.ServiceName = "NatsROS_Container_Engine";
-            });
+            //// 【核心】：将其注册为 Windows 服务！(在 Linux 下可以无缝忽略，或者改为 Systemd)
+            //builder.Services.AddWindowsService(options =>
+            //{
+            //    options.ServiceName = "NatsROS_Container_Engine";
+            //});
 
             // ==========================================
             // 【核心修改】：接管微软的日志系统，替换为 NLog

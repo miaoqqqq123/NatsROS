@@ -68,7 +68,14 @@ namespace NatsROS.Dashboard.Plugins.NodeManager
             try
             {
                 var req = new LoadNodeReq(selectedInfo.AssemblyName, selectedInfo.TypeName, nodeName);
-                await _nats.RequestAsync<LoadNodeReq, LoadNodeRes>("container.load_node", req, replyOpts: new NatsSubOpts { Timeout = TimeSpan.FromSeconds(3) });
+                // 1. 发起请求并拿到结果
+                var res = await _nats.RequestAsync<LoadNodeReq, LoadNodeRes>("container.load_node", req, replyOpts: new NatsSubOpts { Timeout = TimeSpan.FromSeconds(3) });
+
+                // 2. 【核心修复】：如果母体返回失败，必须弹窗大声告诉用户！
+                if (res.Data != null && !res.Data.Success)
+                {
+                    MessageBox.Show($"母体加载节点失败！\n原因: {res.Data.Message}", "加载失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
                 await RefreshNodeListAsync();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
@@ -175,9 +182,22 @@ namespace NatsROS.Dashboard.Plugins.NodeManager
                             {
                                 var rosAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.RosPropAttribute>();
                                 var catAttr = prop.GetCustomAttribute<System.ComponentModel.CategoryAttribute>();
+                                var scopeAttr = prop.GetCustomAttribute<NatsROS.Core.Attributes.ParameterScopeAttribute>();
 
                                 if (rosAttr != null || catAttr != null)
                                 {
+                                    // 【核心拦截】：如果是决定节点身份的开机参数，绝对不允许在运行时热更！
+                                    if (scopeAttr != null && scopeAttr.Scope == NatsROS.Core.Attributes.RosPropScope.Launch)
+                                    {
+                                        // 强制告诉 DevExpress 隐藏这个属性！
+                                        PropGridParams.PropertyDefinitions.Add(new DevExpress.Xpf.PropertyGrid.PropertyDefinition
+                                        {
+                                            Path = prop.Name,
+                                            Visibility = System.Windows.Visibility.Collapsed
+                                        });
+                                        continue;
+                                    }
+
                                     if (_currentEditingRecipe.Parameters.TryGetValue(prop.Name, out string? strVal))
                                     {
                                         try { prop.SetValue(_dummyProxyObject, Convert.ChangeType(strVal, prop.PropertyType)); } catch { }
@@ -197,6 +217,24 @@ namespace NatsROS.Dashboard.Plugins.NodeManager
                                         Description = description,
                                         Tag = "Dynamic"
                                     };
+
+                                    // ==========================================
+                                    // 【核心拦截魔法】：如果是 IO 标签选择器，画出一个 [...] 按钮！
+                                    // ==========================================
+                                    if (prop.GetCustomAttribute<NatsROS.Core.Attributes.IoTagSelectorAttribute>() != null)
+                                    {
+                                        var btnSettings = new DevExpress.Xpf.Editors.Settings.ButtonEditSettings { AllowDefaultButton = true, IsTextEditable = true };
+                                        btnSettings.DefaultButtonClick += (s, args) =>
+                                        {
+                                            var dlg = new IoTagSelectorDialog(_nats) { Owner = Window.GetWindow(this) };
+                                            if (dlg.ShowDialog() == true && s is DevExpress.Xpf.Editors.ButtonEdit editor)
+                                            {
+                                                editor.EditValue = dlg.SelectedTag;
+                                            }
+                                        };
+                                        def.EditSettings = btnSettings;
+                                    }
+
                                     PropGridParams.PropertyDefinitions.Add(def);
                                 }
                             }

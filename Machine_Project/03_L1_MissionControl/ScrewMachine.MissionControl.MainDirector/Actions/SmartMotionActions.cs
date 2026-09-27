@@ -1,6 +1,4 @@
-﻿using Hexiv.BehaviorTree.Attributes;
-using Hexiv.BehaviorTree.Core;
-using NATS.Client.Core;
+﻿using NATS.Client.Core;
 using NatsROS.Core.Communication;
 using NatsROS.Core.SystemMessages;
 using NatsROS.Messages.GeometryMsgs;
@@ -10,6 +8,9 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NatsROS.BehaviorTree.Attributes;
+using NatsROS.BehaviorTree.Core;
+using NatsROS.Messages.Motion;
 
 namespace ScrewMachine.MissionControl.MainDirector.Actions
 {
@@ -37,7 +38,8 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
             string ptJson = "";
             if (Source == PointSource.Machine)
             {
-                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(nats, "brain_dispenser");
+                // 【核心修正】
+                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(nats, "container_manager");
                 ptJson = await paramClient.GetAsync($"MachinePoint_{TargetPointName}", ct) ?? "";
             }
             else
@@ -60,7 +62,7 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
                 double oy = blackboard.Get("OffsetY", out double oyVal) ? oyVal : 0;
                 double ang = blackboard.Get("Angle", out double angVal) ? angVal : 0;
 
-                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(nats, "brain_dispenser");
+                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(nats, "container_manager");
                 double baseX = double.Parse(await paramClient.GetAsync($"{sourceStation}_BaseX", ct) ?? "0");
                 double baseY = double.Parse(await paramClient.GetAsync($"{sourceStation}_BaseY", ct) ?? "0");
 
@@ -103,7 +105,7 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
             if (Source == PointSource.Product)
                 trajJson = blackboard.Get($"RecipeTraj_{TrajectoryName}", out string tj) ? tj : "";
             else
-                trajJson = await new NatsROS.Core.Parameters.RosParameterClient(nats, "brain_dispenser").GetAsync($"MachineTraj_{TrajectoryName}", ct) ?? "";
+                trajJson = await new NatsROS.Core.Parameters.RosParameterClient(nats, "container_manager").GetAsync($"MachineTraj_{TrajectoryName}", ct) ?? "";
 
             if (string.IsNullOrEmpty(trajJson)) throw new Exception($"未找到轨迹数据: {TrajectoryName}");
 
@@ -119,7 +121,7 @@ namespace ScrewMachine.MissionControl.MainDirector.Actions
                 oy = blackboard.Get("OffsetY", out double oyVal) ? oyVal : 0;
                 ang = blackboard.Get("Angle", out double angVal) ? angVal : 0;
 
-                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(nats, "brain_dispenser");
+                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(nats, "container_manager");
                 baseX = double.Parse(await paramClient.GetAsync($"{sourceStation}_BaseX", ct) ?? "0");
                 baseY = double.Parse(await paramClient.GetAsync($"{sourceStation}_BaseY", ct) ?? "0");
             }

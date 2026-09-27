@@ -83,7 +83,7 @@
                 <dxb:BarButtonItem
                     x:Name="BtnSavePoints"
                     BarItemDisplayMode="ContentAndGlyph"
-                    Content="💾 保存当前域的所有数据"
+                    Content="保存当前域的所有数据"
                     Foreground="DarkGreen"
                     Glyph="{dx:DXImage 'SvgImages/Save/Save.svg'}"
                     ItemClick="BtnSavePoints_ItemClick" />

@@ -4,13 +4,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyVersion>1.2026.0903.0</AssemblyVersion>
-    <FileVersion>1.2026.0903.0</FileVersion>
+    <AssemblyVersion>1.2026.0908.0</AssemblyVersion>
+    <FileVersion>1.2026.0908.0</FileVersion>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
 	<ItemGroup>
 		<!-- 【核心魔法】：直接从本地私有仓库拉取 SDK！ -->
+		<PackageReference Include="Hexiv.NatsROS.BehaviorTree" Version="2.0.0" />
 		<PackageReference Include="Hexiv.NatsROS.Core" Version="2.0.0" />
 		<PackageReference Include="Hexiv.NatsROS.Hosting" Version="2.0.0" />
 		<PackageReference Include="Hexiv.NatsROS.Messages" Version="2.0.0" />
@@ -18,7 +19,9 @@
 
   <ItemGroup>
 	  <!-- 引用机台自己的业务契约库 -->
-	  <ProjectReference Include="..\..\00_Messages\HexivMachine.Messages\HexivMachine.Messages.csproj" />
+	  <ProjectReference Include="..\..\00_Messages\HexivMachine.Messages\HexivMachine.Messages.csproj">
+	    <Private>False</Private>
+	  </ProjectReference>
   </ItemGroup>
 
 </Project>

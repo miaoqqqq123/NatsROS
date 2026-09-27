@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using NATS.Client.Core;
 using NatsROS.Core.SystemMessages;
+using NatsROS.Messages.AEM;
 
-namespace Hexiv.BehaviorTree.Core
+namespace NatsROS.BehaviorTree.Core
 {
     // ==========================================
     // 0. 任务根节点 (Root Node) - 对齐 Dashboard
@@ -25,6 +23,22 @@ namespace Hexiv.BehaviorTree.Core
     }
 
     // ==========================================
+    // 1. 新增：工业级业务主动中断异常
+    // ==========================================
+    public class ProcessInterruptException : Exception
+    {
+        public string AlarmCode { get; }
+        public string[] AlarmArgs { get; }
+
+        public ProcessInterruptException(string alarmCode, params string[] args)
+            : base($"业务异常中断: [{alarmCode}]")
+        {
+            AlarmCode = alarmCode;
+            AlarmArgs = args;
+        }
+    }
+
+    // ==========================================
     // 5. 插件化动作节点基类 (相当于 OpenTAP 的 TestStep)
     // 业务开发者应该继承此类来编写具体的动作逻辑！
     // ==========================================
@@ -35,23 +49,48 @@ namespace Hexiv.BehaviorTree.Core
         // 封死原有的 OnTickAsync，强制进行异常捕获包装
         protected override async Task<BtNodeStatus> OnTickAsync(Blackboard blackboard, CancellationToken ct)
         {
+
             try
             {
+                // ==========================================
+                // 【核心修补】：绝对拦截！
+                // 如果系统被打上了挂起标记，绝对不准进入下方的业务逻辑，直接返回 Running 保持指针冻结！
+                // ==========================================
+                if (blackboard.Get("IsPaused", out bool isPaused) && isPaused)
+                {
+                    return BtNodeStatus.Running;
+                }
+
                 return await OnExecuteAsync(blackboard, ct);
+            }
+            catch (ProcessInterruptException ex)
+            {
+                // 【核心革命】：捕获到业务级死锁！
+                var nats = blackboard.Get<INatsClient>("Nats");
+                if (nats != null)
+                {
+                    // 1. 瞬间向全网 AEM 管家抛出严重报警！
+                    _ = nats.PublishAsync("aem.raise", new RaiseAlarmMsg(ex.AlarmCode, ex.AlarmArgs));
+                }
+
+                // 2. 将系统切入挂起模式，等待人工救援
+                blackboard.Set("IsPaused", true);
+
+                // 3. 极其关键：返回 Running 状态！这样父级 Sequence 的进度指针就被绝对冻结了！
+                return BtNodeStatus.Running;
             }
             catch (OperationCanceledException)
             {
-                // 【绝妙的黑魔法】：区分“彻底终止”与“人工暂停”
-                // 如果是暂停，我们返回 Running 状态，这样父节点(Sequence)的当前进度指针就不会被清零！
+                // 人工点击界面的“暂停”按钮触发的逻辑
                 if (blackboard.Get("IsPaused", out bool isPaused) && isPaused)
                 {
                     return BtNodeStatus.Running; // 内存冻结！
                 }
-
                 return BtNodeStatus.Failure; // 彻底急停/报错
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"节点 [{Name}] 发生未处理异常: {ex.Message}");
                 return BtNodeStatus.Failure;
             }
         }

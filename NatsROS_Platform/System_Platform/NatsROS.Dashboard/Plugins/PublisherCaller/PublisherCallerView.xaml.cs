@@ -104,34 +104,37 @@ namespace NatsROS.Dashboard.Plugins.PublisherCaller
 
         private object? CreateDefaultInstance(Type type)
         {
-            try 
-            { 
-                return Activator.CreateInstance(type); 
-            } 
-            catch 
-            { 
+            // 1. 如果是字符串，直接返回空字符串
+            if (type == typeof(string)) return "";
+
+            // 2. 如果是值类型(struct) 或者 有明确的无参构造函数，直接安全创建！
+            if (type.IsValueType || type.GetConstructor(Type.EmptyTypes) != null)
+            {
+                return Activator.CreateInstance(type);
             }
 
+            // 3. 如果没有无参构造 (比如 Record 类型)，找到参数最多的那个构造函数来捏造数据
             var ctor = type.GetConstructors().OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
             if (ctor != null)
             {
                 var parameters = ctor.GetParameters();
                 var defaultArgs = new object?[parameters.Length];
+
                 for (int i = 0; i < parameters.Length; i++)
                 {
                     var pt = parameters[i].ParameterType;
-                    if (pt == typeof(string)) defaultArgs[i] = "";
-                    else if (pt.IsValueType) defaultArgs[i] = Activator.CreateInstance(pt);
-                    else defaultArgs[i] = CreateDefaultInstance(pt);
+                    // 递归调用，帮子属性也把坑填上
+                    defaultArgs[i] = CreateDefaultInstance(pt);
                 }
-                try 
+
+                try
                 {
                     return ctor.Invoke(defaultArgs);
-                } 
-                catch 
-                { 
                 }
+                catch { }
             }
+
+            // 4. 终极兜底：强行在内存中划一块地皮，跳过任何构造函数 (对付极其难搞的类)
             return System.Runtime.Serialization.FormatterServices.GetUninitializedObject(type);
         }
 

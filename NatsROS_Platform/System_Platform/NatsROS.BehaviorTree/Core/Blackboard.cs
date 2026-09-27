@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Hexiv.BehaviorTree.Core
+namespace NatsROS.BehaviorTree.Core
 {
     public class Blackboard
     {

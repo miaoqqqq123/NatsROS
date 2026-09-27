@@ -8,6 +8,7 @@
     xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
     xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
     xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+    xmlns:dxprg="http://schemas.devexpress.com/winfx/2008/xaml/propertygrid"
     xmlns:security="clr-namespace:NatsROS.Dashboard.Security">
 
     <Grid>
@@ -200,44 +201,19 @@
                                 </dxlc:LayoutControl>
                             </dxdo:LayoutPanel>
 
-                            <!--  工艺参数表格  -->
+                            <!--  工艺参数高级属性表单  -->
                             <dxdo:LayoutPanel
                                 AllowClose="False"
-                                Caption="⚙️ 工艺参数 (Formula)"
+                                Caption="⚙️ 强类型工艺参数 (Schema Properties)"
                                 ShowCloseButton="False"
                                 ShowPinButton="False">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-                                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                        <dx:SimpleButton
-                                            Width="100"
-                                            Height="24"
-                                            Click="BtnAddParam_Click"
-                                            Content="➕ 添加参数" />
-                                        <dx:SimpleButton
-                                            Width="100"
-                                            Height="24"
-                                            Margin="6,0,0,0"
-                                            Click="BtnDelParam_Click"
-                                            Content="➖ 删除参数" />
-                                    </StackPanel>
-                                    <dxg:GridControl
-                                        x:Name="GridParams"
-                                        Grid.Row="1"
-                                        AutoGenerateColumns="None">
-                                        <dxg:GridControl.View>
-                                            <dxg:TableView ShowGroupPanel="False" />
-                                        </dxg:GridControl.View>
-                                        <dxg:GridColumn FieldName="Key" Header="参数名 (Key)" />
-                                        <dxg:GridColumn
-                                            Width="*"
-                                            FieldName="Value"
-                                            Header="设定值 (Value)" />
-                                    </dxg:GridControl>
-                                </Grid>
+
+                                <dxprg:PropertyGridControl
+                                    x:Name="PropGridParams"
+                                    ExpandCategoriesWhenSelectedObjectChanged="True"
+                                    ShowDescriptionIn="Panel"
+                                    ShowSearchBox="True" />
+
                             </dxdo:LayoutPanel>
                         </dxdo:LayoutGroup>
 

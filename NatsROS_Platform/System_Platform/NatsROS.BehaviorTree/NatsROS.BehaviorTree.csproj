@@ -1,16 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AssemblyVersion>1.2026.0903.0</AssemblyVersion>
-    <FileVersion>1.2026.0903.0</FileVersion>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Framework_Core\NatsROS.Core\NatsROS.Core.csproj" />
-  </ItemGroup>
+		<!-- 赋予行为树引擎 SDK 身份，自动打包为 NuGet -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageId>Hexiv.NatsROS.BehaviorTree</PackageId>
+		<Authors>Hexiv Platform Team</Authors>
+		<Company>Hexiv Automation</Company>
+		
+		<Description>NatsROS 行为树核心引擎与开发者 SDK。提供工业级的动作积木基类、黑板上下文机制及复合异常拦截特性。</Description>
+		<AssemblyVersion>1.2026.0922.0</AssemblyVersion>
+		<FileVersion>1.2026.0922.0</FileVersion>
+		<PlatformTarget>x64</PlatformTarget>
+		<!-- 让 NuGet 版本号动态绑定上面的 FileVersion！ -->
+		<Version>2.0.0</Version>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Framework_Core\NatsROS.Core\NatsROS.Core.csproj" />
+		<ProjectReference Include="..\..\Framework_Core\NatsROS.Messages\NatsROS.Messages.csproj" />
+	</ItemGroup>
 
 </Project>

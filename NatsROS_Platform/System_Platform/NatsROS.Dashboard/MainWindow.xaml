@@ -9,12 +9,18 @@
     xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
     xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
     xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
+    x:Name="themedWindow"
     Title="{DynamicResource MainTitle}"
     Width="1200"
     Height="800"
     Closing="Window_Closing"
     Loaded="Window_Loaded"
+    ShowIcon="False"
+    ShowTitle="False"
+    TitleAlignment="Left"
+    WindowKind="Ribbon"
     WindowStartupLocation="CenterScreen">
+
 
     <Grid>
         <Grid.RowDefinitions>
@@ -23,12 +29,49 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!--
+            ==========================================
+            1. 自定义标题栏 (完全听从你的 Grid 排版)
+            ==========================================
+        -->
+        <Grid
+            x:Name="GridTitle"
+            Grid.Row="0"
+            Height="32"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Panel.ZIndex="999"
+            Cursor="">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <dx:DXImage
+                Grid.Column="0"
+                Width="32"
+                Height="32"
+                VerticalAlignment="Center"
+                Source="/NatsROS图标.png" />
+            <TextBlock
+                Grid.Column="1"
+                Margin="10,0,0,0"
+                VerticalAlignment="Center"
+                FontSize="16"
+                FontWeight="Bold"
+                Text="{Binding Title, ElementName=themedWindow}" />
+
+
+        </Grid>
+
         <!--  1. 顶部：Ribbon 菜单  -->
         <dxr:RibbonControl
             x:Name="MainRibbon"
             Grid.Row="0"
             RibbonStyle="Office2019"
-            ShowApplicationButton="False">
+            ShowApplicationButton="False"
+            ToolbarShowCustomizationButton="False">
 
             <dxr:RibbonControl.PageHeaderItems>
                 <dxb:BarSubItem
@@ -107,8 +150,20 @@
                             RibbonStyle="Large" />
                     </dxr:RibbonPageGroup>
 
+
                     <!--  原有的视图控制分组  -->
                     <dxr:RibbonPageGroup Caption="视图控制 (View Control)">
+                        <!--  ==========================================  -->
+                        <!--  【新增】：布局锁定开关 (带记忆状态)  -->
+                        <!--  ==========================================  -->
+                        <dxb:BarCheckItem
+                            x:Name="BtnToggleLayoutLock"
+                            CheckedChanged="BtnToggleLayoutLock_CheckedChanged"
+                            Content="锁定当前布局"
+                            IsChecked="True"
+                            LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Unlock.svg'}"
+                            RibbonStyle="Large" />
+
                         <dxb:BarButtonItem
                             x:Name="BtnSaveLayout"
                             Content="{DynamicResource SaveLayoutBtn}"
@@ -261,6 +316,13 @@
                 x:Name="StatusPluginCount"
                 Alignment="Default"
                 Content="加载了 0 个插件" />
+
+            <dxb:BarStaticItem
+                x:Name="StatusWorkspace"
+                Alignment="Default"
+                Content="沙盒路径: 未知"
+                Foreground="Cyan" />
+
             <dxb:BarStaticItem
                 x:Name="StatusActiveRecipe"
                 Alignment="Far"
@@ -271,6 +333,13 @@
                 Margin="20,0,0,0"
                 Alignment="Far"
                 Content="👤 用户: 未登录" />
+            <dxb:BarButtonItem
+                x:Name="BtnSwitchUserLink"
+                Margin="5,0,10,0"
+                Alignment="Far"
+                Content="🔄 [切换账号]"
+                Foreground="#00BCD4"
+                ItemClick="BtnSwitchUser_ItemClick" />
         </dxb:StatusBarControl>
 
     </Grid>

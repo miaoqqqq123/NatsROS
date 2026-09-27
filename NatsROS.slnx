@@ -29,6 +29,5 @@
   </Folder>
   <Folder Name="/解决方案项/">
     <File Path="Directory.Build.props" />
-    <File Path="nuget.config" />
   </Folder>
 </Solution>

@@ -6,11 +6,14 @@ using DevExpress.Xpf.Docking;
 using DevExpress.Xpf.Ribbon;
 using NATS.Client.Core;
 using NATS.Net;
+using NatsROS.Core.Communication;
 using NatsROS.Core.Serialization;
 using NatsROS.Core.SystemMessages;
 using NatsROS.Core.UI;
 using NatsROS.Dashboard.Localization;
 using NatsROS.Dashboard.Security;
+using NatsROS.Dashboard.UI.Dialogs;
+using NatsROS.Messages.AEM;
 using NatsROS.Messages.RMS;
 using System.Collections.Concurrent;
 using System.IO;
@@ -19,7 +22,6 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
-using NatsROS.Dashboard.UI.Dialogs;
 using Color = System.Windows.Media.Color;
 using MessageBox = System.Windows.MessageBox;
 using Size = System.Windows.Size;
@@ -66,11 +68,11 @@ namespace NatsROS.Dashboard
 
         public MainWindow()
         {
-            // 【新增】：在 WPF 渲染 UI 之前，强制将全局默认主题锁定为 Win11 Dark！
+            // 【新增】：在 WPF 渲染 UI 之前，强制将全局默认主题锁定为 Win10 Dark！
             DevExpress.Xpf.Core.ApplicationThemeHelper.ApplicationThemeName = "Win11Dark";
 
             InitializeComponent();
-
+      
             // 配置日志渲染定时器
             _logRenderTimer.Interval = TimeSpan.FromMilliseconds(100);
             _logRenderTimer.Tick += LogRenderTimer_Tick;
@@ -101,7 +103,7 @@ namespace NatsROS.Dashboard
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //this.Visibility = System.Windows.Visibility.Collapsed;
+           
             // 呼出 DevExpress 极具质感的加载大屏 (在独立线程运行)
             //初始化启动页面
             var dXSplashScreenViewModel = new DXSplashScreenViewModel
@@ -117,6 +119,7 @@ namespace NatsROS.Dashboard
             splash.Show();
 
             await Task.Delay(100); // 给大屏一点时间渲染出来
+            this.Title = $"{this.Title} -【版本：{Assembly.GetExecutingAssembly().GetName().Version}】";
 
             try
             {
@@ -132,9 +135,11 @@ namespace NatsROS.Dashboard
                     var imageConverter = new System.Windows.Media.ImageSourceConverter();
                     // 点亮状态栏！
                     StatusConnection.Content = "已连接到 NATS 核心网络 (127.0.0.1:4222)";
+                    StatusWorkspace.Content = $"📁 当前沙盒: {NatsROS.Core.Environment.WorkspaceManager.CurrentWorkspacePath}";
+
                     try
                     {
-                        string uriStr = "pack://application:,,,/DevExpress.Images.v23.2;component/SvgImages/Icon Builder/Security_Security.svg";
+                        string uriStr = "pack://application:,,,/DevExpress.Images.v24.2;component/SvgImages/Icon Builder/Security_Security.svg";
                         Uri uri = new System.Uri(uriStr);
                         StatusConnection.Glyph = WpfSvgRenderer.CreateImageSource(uri);
                     }
@@ -148,6 +153,7 @@ namespace NatsROS.Dashboard
                     _logRenderTimer.Start();
                     _ = ListenToRosOutAsync(_sysCts.Token);
                     AppendLog("SYSTEM", "✅ NatsROS 监控大屏启动成功，日志拦截引擎已就绪。", Colors.LimeGreen);
+
                 }
 
                 // 2. 开机去查一下当前激活的配方是谁 (同步底层的记忆)
@@ -245,6 +251,7 @@ namespace NatsROS.Dashboard
             {
                 // 【核心收尾】：无论成功失败，关闭加载动画，展示主界面！
                 splash.Close();
+                //this.Visibility = System.Windows.Visibility.Collapsed;
                 this.Visibility = System.Windows.Visibility.Visible;
             }
         }
@@ -393,6 +400,8 @@ namespace NatsROS.Dashboard
                 {
                     welcomePanel.Visibility = Visibility.Visible;
                     DockManager.Activate(welcomePanel);
+                    // 从 XML 恢复布局后，DX引擎可能重写了 AllowDrag 等属性，必须重新上锁！
+                    ApplyLayoutLockState(BtnToggleLayoutLock.IsChecked ?? false);
                 }
             }
         }
@@ -514,20 +523,21 @@ namespace NatsROS.Dashboard
             _failedDlls.Clear(); // 清空历史报错
 
             string binPath = AppDomain.CurrentDomain.BaseDirectory;
-            // 定位到沙盒的插件目录
-            string workspacePluginsDir = Path.Combine(NatsROS.Core.Environment.WorkspaceManager.CurrentWorkspacePath, "Plugins");
 
-            if (!Directory.Exists(workspacePluginsDir)) Directory.CreateDirectory(workspacePluginsDir);
-
-            // 加入沙盒插件目录进行扫描
+            //通过大管家获取路径，保证文件夹 100% 存在！
             string[] searchDirs = {
                 binPath,
-                workspacePluginsDir
+                NatsROS.Core.Environment.WorkspaceManager.GetPluginsMessagesPath(),     // 吃进跨端契约 (用于解析结构)
+                NatsROS.Core.Environment.WorkspaceManager.GetPluginsUiPath(),           // 吃进大屏 UI 插件
+                NatsROS.Core.Environment.WorkspaceManager.GetPluginsNodesPath()         //让大屏的"节点管理器"和"行为树编辑器"能反射提取后端类的参数和特性！
             };
 
             // 1. 强制将所有相关的 DLL 吸入内存！
             foreach (var dir in searchDirs)
             {
+                // 打印系统到底去了哪个文件夹找 DLL
+                AppendLog("SYSTEM", $"🔍 正在扫描插件目录: {dir}", Colors.DarkGray);
+
                 if (!Directory.Exists(dir)) continue;
 
                 // 1. 改为 SearchOption.TopDirectoryOnly (只扫表面，绝对不进 runtimes 等深水区子文件夹)
@@ -554,6 +564,8 @@ namespace NatsROS.Dashboard
                         // 【极其严苛的防线】：强行获取该 DLL 声明的所有类型！
                         // 如果它里面有任何一个方法依赖了找不到的 DLL，这一步就会触发 ReflectionTypeLoadException！
                         var types = asm.GetTypes();
+
+                        AppendLog("SYSTEM", $"🔍 正在扫描插件文件: {asm.FullName}", Colors.DarkGray);
                     }
                     catch (ReflectionTypeLoadException ex)
                     {
@@ -637,6 +649,8 @@ namespace NatsROS.Dashboard
             // 1. 读取沙盒里的 ui_manifest.json
             List<string>? enabledPlugins = null;
             string manifestPath = NatsROS.Core.Environment.WorkspaceManager.GetConfigPath("ui_manifest.json");
+            // 打印系统到底读了哪个清单文件
+            AppendLog("SYSTEM", $"📖 正在读取 UI 清单: {manifestPath}", Colors.DarkGray);
 
             if (File.Exists(manifestPath))
             {
@@ -675,7 +689,13 @@ namespace NatsROS.Dashboard
                     foreach (var plugin in innerGroup)
                     {
                         var btn = new BarButtonItem { Content = plugin.DisplayName, RibbonStyle = RibbonItemStyles.Large };
-                        try { btn.LargeGlyph = WpfSvgRenderer.CreateImageSource(new Uri($"pack://application:,,,/DevExpress.Images.v23.2;component/{plugin.GlyphPath}")); } catch { }
+                        try 
+                        { 
+                            btn.LargeGlyph = WpfSvgRenderer.CreateImageSource(new Uri($"pack://application:,,,/DevExpress.Images.v24.2;component/{plugin.GlyphPath}")); 
+                        } 
+                        catch
+                        { 
+                        }
 
                         btn.ItemClick += (s, e) => OpenPluginInMdi(plugin);
                         pageGroupControl.ItemLinks.Add(btn);
@@ -743,6 +763,9 @@ namespace NatsROS.Dashboard
                 // 4. 将新面板加入 DockManager (如果 XML 布局里有它的位置记录，DX 引擎会自动把它吸附过去！)
                 MdiContainer.Add(panel);
                 DockManager.Activate(panel);
+
+                // 新加入的面板必须立刻继承当前的全局锁定状态！
+                ApplyLayoutLockState(BtnToggleLayoutLock.IsChecked ?? false);
             }
             catch (Exception ex)
             {
@@ -1002,21 +1025,91 @@ namespace NatsROS.Dashboard
             // 1. 隐藏/显示 顶部 Ribbon 菜单
             MainRibbon.Visibility = isDebugMode ? Visibility.Visible : Visibility.Collapsed;
             RibbonCategory.IsVisible = isDebugMode;
+            this.GridTitle.Visibility=isDebugMode ? Visibility.Visible : Visibility.Collapsed;
+            this.ShowTitle = !isDebugMode;
+            this.ShowIcon = !isDebugMode;
 
-            // 2. 锁定/解锁 DevExpress 底层布局引擎！
-            DockManager.AllowCustomization = isDebugMode; // 禁用右键高级布局菜单
-
-            var allPanels = DockManager.GetItems();
-            foreach (var item in allPanels)
+            // ==========================================
+            // 2. 【核心升级】：把底层面板锁死的脏活累活，全权交接给锁开关！
+            // 删掉原来的 foreach，改用开关驱动，这样连 Tab 标签上的 X 号也能一起被隐藏掉
+            // ==========================================
+            if (!isDebugMode)
             {
-                item.AllowDrag = isDebugMode;   // 禁止拖拽
-                item.AllowFloat = isDebugMode;  // 禁止悬浮
-                item.AllowClose = isDebugMode;  // 禁止点 X 关闭
-                item.AllowHide = isDebugMode;   // 禁止隐藏
+                // 如果是操作员：强制合上锁！并且禁用这个锁按钮（让他连点都没法点）
+                BtnToggleLayoutLock.IsChecked = true;
+                BtnToggleLayoutLock.IsEnabled = false;
+            }
+            else
+            {
+                // 如果是工程师：默认依然合上锁（防止他手抖误触拖乱布局），但他有权点击解锁来排版！
+                BtnToggleLayoutLock.IsChecked = true;
+                BtnToggleLayoutLock.IsEnabled = true;
             }
 
+            // 只要我们上面给 IsChecked 赋了值，就会自动触发 BtnToggleLayoutLock_CheckedChanged 事件，
+            // 那个事件会自动去执行 ApplyLayoutLockState，从而完成你以前 foreach 做的所有事情！
             string modeName = isDebugMode ? "研发调试模式 (Debug)" : "生产运行模式 (Operator)";
             AppendLog("SYSTEM", $"🔐 权限已切换，当前 UI 进入: {modeName}", Colors.Orange);
+        }
+
+        /// <summary>
+        /// 布局锁定与解锁核心引擎 (Layout Lock Engine)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnToggleLayoutLock_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            bool isLocked = BtnToggleLayoutLock.IsChecked ?? false;
+
+            // 1. 动态切换 UI 图标与文字
+            if (isLocked)
+            {
+                BtnToggleLayoutLock.Content = "解锁当前布局"; // 提示下一步可做的操作
+                BtnToggleLayoutLock.LargeGlyph = WpfSvgRenderer.CreateImageSource(new Uri("pack://application:,,,/DevExpress.Images.v24.2;component/SvgImages/Icon Builder/Security_Unlock.svg"));
+            }
+            else
+            {
+                BtnToggleLayoutLock.Content = "锁定当前布局";
+                BtnToggleLayoutLock.LargeGlyph = WpfSvgRenderer.CreateImageSource(new Uri("pack://application:,,,/DevExpress.Images.v24.2;component/SvgImages/Icon Builder/Security_Lock.svg"));
+            }
+
+            // 2. 执行真正的锁定逻辑
+            ApplyLayoutLockState(isLocked);
+        }
+
+        /// <summary>
+        /// 布局锁定与解锁
+        /// </summary>
+        /// <param name="isLocked"></param>
+        private void ApplyLayoutLockState(bool isLocked)
+        {
+            if (DockManager == null) return;
+
+            // 1. 禁用高级右键菜单（禁止通过右键点击“浮动”、“自动隐藏”）
+            DockManager.AllowCustomization = !isLocked;
+
+            // 2. 隐藏/显示 MDI 容器顶部 Tab 标签里的 "X" 关闭按钮
+            MdiContainer.ClosePageButtonShowMode = isLocked
+                ? DevExpress.Xpf.Docking.ClosePageButtonShowMode.NoWhere
+                : DevExpress.Xpf.Docking.ClosePageButtonShowMode.InActiveTabPageHeader;
+
+            // 3. 遍历所有的窗格，强行剥夺/赋予交互权限
+            var allItems = DockManager.GetItems();
+            foreach (var item in allItems)
+            {
+                // 欢迎大屏永远不允许被关闭或拖拽
+                if (item.Name == "PanelWelcome") continue;
+
+                item.AllowClose = !isLocked;
+                item.AllowDrag = !isLocked;
+                item.AllowFloat = !isLocked;
+                item.AllowSizing = !isLocked;
+            }
+        }
+
+        private void BtnSwitchUser_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

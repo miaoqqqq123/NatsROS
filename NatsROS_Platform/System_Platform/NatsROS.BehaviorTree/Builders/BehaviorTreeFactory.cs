@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Xml.Linq;
-using Hexiv.BehaviorTree.Core;
+using NatsROS.BehaviorTree.Core;
 
-namespace Hexiv.BehaviorTree.Builders
+namespace NatsROS.BehaviorTree.Builders
 {
     /// <summary>
     /// 行为树 XML 动态解析与属性注入工厂 (V3.0 终极版)
@@ -37,19 +34,25 @@ namespace Hexiv.BehaviorTree.Builders
                 {
                     string asmName = a.GetName().Name ?? "";
 
-                    // 1. 白名单：只看我们自己前缀的业务 DLL
-                    bool isOurCode = asmName.StartsWith("NatsROS") ||
-                                     asmName.StartsWith("ScrewMachine") ||
-                                     asmName.StartsWith("Hexiv");
+                    // 1. 黑名单：跳过系统和第三方庞大的基础库，提升扫描极速
+                    bool isNotFramework = !asmName.StartsWith("System") &&
+                                          !asmName.StartsWith("Microsoft") &&
+                                          !asmName.StartsWith("DevExpress") &&
+                                          !asmName.StartsWith("NATS") &&
+                                          !asmName.StartsWith("MessagePack") &&
+                                          !asmName.StartsWith("NLog") &&
+                                          !asmName.StartsWith("SQLite");
 
-                    // 2. 黑名单：绝对不扫 UI 程序和外壳！(防止缺少 WPF 依赖报错)
+                    // 2. 黑名单：绝对不扫 UI 程序和外壳！(防止在母体中缺少 WPF 依赖报错)
                     bool isNotUI = !asmName.Contains("Dashboard") &&
                                    !asmName.Contains("Hmi") &&
                                    !asmName.Contains("Launcher") &&
                                    !asmName.Contains("UI") &&
-                                   !asmName.Contains("Container");
+                                   !asmName.Contains("Container") &&
+                                   !asmName.Contains("Plugin");
 
-                    return isOurCode && isNotUI;
+                    // 只要不是系统库，且不是 UI 库，统统放行！
+                    return isNotFramework && isNotUI;
                 })
                 .SelectMany(a =>
                 {

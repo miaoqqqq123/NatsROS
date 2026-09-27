@@ -361,3 +361,36 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
+# ==========================================
+# NatsROS 专属架构忽略规则 (OS & Sandbox)
+# ==========================================
+
+# 1. 忽略核心运行时与沙盒 (包含所有 DLL、EXE、配置文件和本地数据库)
+Deploy_Build/
+
+# 2. 忽略 Inno Setup 打包生成的安装程序目录
+InstallerOutput/
+
+# 3. 忽略各种交付产物包
+*.natsros
+*.nupkg
+*.zip
+*.bag
+
+# 4. 忽略本地产生的日志文件和 SQLite 缓存
+*.log
+*.db
+*.db-shm
+*.db-wal
+LocalData/
+
+# ==========================================
+# ⚠️ 关于 NatsROS_Templates 的架构师警告：
+# ==========================================
+# NatsROS_Templates 里面存放的是脚手架模板的【源码】！
+# 绝对不能忽略整个文件夹！否则新员工无法拉取模板代码。
+# 我们只需要忽略它里面编译产生的 bin 和 obj 即可（下面是 .NET 的标准忽略）。
+NatsROS_Templates/**/bin/
+NatsROS_Templates/**/obj/

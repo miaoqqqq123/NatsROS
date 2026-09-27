@@ -7,6 +7,7 @@ using ScrewMachine.Messages.Hardware;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NatsROS.Messages.Hardware;
 
 namespace ScrewMachine.HAL
 {
@@ -48,15 +49,15 @@ namespace ScrewMachine.HAL
                     {
                         // 红灯逻辑
                         bool r = _redState == LightState.Solid || (_redState == LightState.Blinking && toggle);
-                        await ioClient.CallAsync(new SetIoReq(redPin, r));
+                        //await ioClient.CallAsync(new SetIoReq(redPin, r));
 
                         // 黄灯逻辑
                         bool y = _yellowState == LightState.Solid || (_yellowState == LightState.Blinking && toggle);
-                        await ioClient.CallAsync(new SetIoReq(yellowPin, y));
+                        //await ioClient.CallAsync(new SetIoReq(yellowPin, y));
 
                         // 绿灯逻辑
                         bool g = _greenState == LightState.Solid || (_greenState == LightState.Blinking && toggle);
-                        await ioClient.CallAsync(new SetIoReq(greenPin, g));
+                        //await ioClient.CallAsync(new SetIoReq(greenPin, g));
 
                         toggle = !toggle;
                         await Task.Delay(500, stoppingToken); // 500ms 闪烁周期

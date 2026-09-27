@@ -5,8 +5,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<!-- 业务库，打上日历版本号 -->
-		<AssemblyVersion>1.2026.0903.1</AssemblyVersion>
-		<FileVersion>1.2026.0903.1</FileVersion>
+		<AssemblyVersion>1.2026.0922.1</AssemblyVersion>
+		<FileVersion>1.2026.0922.1</FileVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

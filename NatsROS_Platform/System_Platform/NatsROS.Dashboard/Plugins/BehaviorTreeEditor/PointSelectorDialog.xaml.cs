@@ -1,10 +1,8 @@
 ﻿using NATS.Client.Core;
-using ScrewMachine.Messages.Motion;
-using System;
 using System.Collections.ObjectModel;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
+using NatsROS.Messages.Motion;
 
 namespace NatsROS.Dashboard.Plugins.BehaviorTreeEditor
 {
@@ -47,46 +45,53 @@ namespace NatsROS.Dashboard.Plugins.BehaviorTreeEditor
                 if (activeRes != null && activeRes.ActiveRecipe != null)
                 {
                     var recipe = activeRes.ActiveRecipe;
-                    foreach (var kvp in recipe.Formula)
-                    {
-                        if (kvp.Key.StartsWith("RecipePoint_"))
-                        {
-                            string coords = "解析异常";
-                            string pureName = kvp.Key.Substring(12);
 
-                            try
+                    // 【核心重构】：抛弃了 Formula 字典，直接动态解析 PayloadJson！
+                    if (!string.IsNullOrEmpty(recipe.PayloadJson))
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(recipe.PayloadJson);
+
+                        // 遍历配方 JSON 第一层的所有属性
+                        foreach (var prop in doc.RootElement.EnumerateObject())
+                        {
+                            // 如果这个属性是一个对象，并且里面带有我们设定的多态标签 "$type"
+                            if (prop.Value.ValueKind == System.Text.Json.JsonValueKind.Object &&
+                                prop.Value.TryGetProperty("$type", out var typeElement))
                             {
-                                var pt = System.Text.Json.JsonSerializer.Deserialize<NamedPoint>(kvp.Value);
-                                if (pt != null)
+                                string typeStr = typeElement.GetString() ?? "";
+
+                                if (typeStr == "Single") // 这是一个离散单点！
                                 {
-                                    coords = $"X:{pt.X:F1}, Y:{pt.Y:F1}, Z:{pt.Z:F1}";
-                                    pureName = pt.Name;
+                                    double x = prop.Value.TryGetProperty("X", out var xProp) ? xProp.GetDouble() : 0;
+                                    double y = prop.Value.TryGetProperty("Y", out var yProp) ? yProp.GetDouble() : 0;
+                                    double z = prop.Value.TryGetProperty("Z", out var zProp) ? zProp.GetDouble() : 0;
+                                    string name = prop.Value.TryGetProperty("Name", out var nProp) ? nProp.GetString() ?? prop.Name : prop.Name;
+
+                                    Dispatcher.Invoke(() => {
+                                        PointList.Add(new PointEntryViewModel
+                                        {
+                                            Source = "📦 当前配方",
+                                            PointName = name,
+                                            Coordinates = $"X:{x:F1}, Y:{y:F1}, Z:{z:F1}",
+                                            Description = $"所属配方: {recipe.RecipeName}"
+                                        });
+                                    });
+                                }
+                                else if (typeStr == "Trajectory") // 这是一个连续轨迹！
+                                {
+                                    string name = prop.Value.TryGetProperty("Name", out var nProp) ? nProp.GetString() ?? prop.Name : prop.Name;
+
+                                    Dispatcher.Invoke(() => {
+                                        PointList.Add(new PointEntryViewModel
+                                        {
+                                            Source = "📦 当前配方",
+                                            PointName = name,
+                                            Coordinates = "[连续轨迹]",
+                                            Description = $"所属配方: {recipe.RecipeName}"
+                                        });
+                                    });
                                 }
                             }
-                            catch { }
-
-                            Dispatcher.Invoke(() => {
-                                PointList.Add(new PointEntryViewModel
-                                {
-                                    Source = "📦 当前配方",
-                                    PointName = pureName,
-                                    Coordinates = coords, // 【完美】：现在显示的是这个产品真实的物理坐标！
-                                    Description = $"所属配方: {recipe.RecipeName}"
-                                });
-                            });
-                        }
-                        else if (kvp.Key.StartsWith("RecipeTraj_"))
-                        {
-                            string pureName = kvp.Key.Substring(11);
-                            Dispatcher.Invoke(() => {
-                                PointList.Add(new PointEntryViewModel
-                                {
-                                    Source = "📦 当前配方",
-                                    PointName = pureName,
-                                    Coordinates = "[连续轨迹]",
-                                    Description = $"所属配方: {recipe.RecipeName}"
-                                });
-                            });
                         }
                     }
                 }

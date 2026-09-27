@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Hexiv.BehaviorTree.Core;
+﻿using NatsROS.BehaviorTree.Core;
 using NatsROS.Core.SystemMessages;
 
-namespace Hexiv.BehaviorTree.Builders
+namespace NatsROS.BehaviorTree.Builders
 {
     public class BehaviorTreeBuilder
     {

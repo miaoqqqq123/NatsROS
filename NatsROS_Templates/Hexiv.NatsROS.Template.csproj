@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- 【核心魔法】：告诉 MSBuild，这不是代码，这是一个模板包！ -->
     <PackageType>Template</PackageType>
-    <PackageVersion>1.2026.0903.1</PackageVersion>
+    <PackageVersion>1.2026.0908.1</PackageVersion>
     <PackageId>Hexiv.NatsROS.Machine.Template</PackageId>
     <Title>NatsROS 工业标准机台工程 (Standard Machine)</Title>
     <Authors>Hexiv Automation</Authors>
@@ -22,12 +22,34 @@
     <!-- ========================================== -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <AssemblyVersion>1.2026.0908.0</AssemblyVersion>
+    <FileVersion>1.2026.0908.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- 把整个 MachineTemplate 文件夹塞进压缩包，但极其聪明地避开别人不小心编译生成的 bin/obj 垃圾 -->
     <Content Include="MachineTemplate\**\*" Exclude="MachineTemplate\**\bin\**;MachineTemplate\**\obj\**;MachineTemplate\**\.vs\**" />
     <Compile Remove="**\*" />
+    <Compile Remove="MachineTemplate\00_Messages\HexivMachine.Messages\obj\**" />
+    <Compile Remove="MachineTemplate\01_L3_HAL\HexivMachine.HAL\obj\**" />
+    <Compile Remove="MachineTemplate\02_L2_Sequencers\HexivMachine.Sequencers\obj\**" />
+    <Compile Remove="MachineTemplate\03_L1_MissionControl\HexivMachine.MissionControl\obj\**" />
+    <Compile Remove="MachineTemplate\04_UserInterfaces\HexivMachine.Dashboard.Plugins\obj\**" />
+    <Content Remove="MachineTemplate\00_Messages\HexivMachine.Messages\obj\**" />
+    <Content Remove="MachineTemplate\01_L3_HAL\HexivMachine.HAL\obj\**" />
+    <Content Remove="MachineTemplate\02_L2_Sequencers\HexivMachine.Sequencers\obj\**" />
+    <Content Remove="MachineTemplate\03_L1_MissionControl\HexivMachine.MissionControl\obj\**" />
+    <Content Remove="MachineTemplate\04_UserInterfaces\HexivMachine.Dashboard.Plugins\obj\**" />
+    <EmbeddedResource Remove="MachineTemplate\00_Messages\HexivMachine.Messages\obj\**" />
+    <EmbeddedResource Remove="MachineTemplate\01_L3_HAL\HexivMachine.HAL\obj\**" />
+    <EmbeddedResource Remove="MachineTemplate\02_L2_Sequencers\HexivMachine.Sequencers\obj\**" />
+    <EmbeddedResource Remove="MachineTemplate\03_L1_MissionControl\HexivMachine.MissionControl\obj\**" />
+    <EmbeddedResource Remove="MachineTemplate\04_UserInterfaces\HexivMachine.Dashboard.Plugins\obj\**" />
+    <None Remove="MachineTemplate\00_Messages\HexivMachine.Messages\obj\**" />
+    <None Remove="MachineTemplate\01_L3_HAL\HexivMachine.HAL\obj\**" />
+    <None Remove="MachineTemplate\02_L2_Sequencers\HexivMachine.Sequencers\obj\**" />
+    <None Remove="MachineTemplate\03_L1_MissionControl\HexivMachine.MissionControl\obj\**" />
+    <None Remove="MachineTemplate\04_UserInterfaces\HexivMachine.Dashboard.Plugins\obj\**" />
   </ItemGroup>
 
 </Project>

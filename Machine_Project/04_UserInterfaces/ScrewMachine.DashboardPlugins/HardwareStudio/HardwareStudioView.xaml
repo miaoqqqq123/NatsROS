@@ -1,0 +1,86 @@
+﻿<UserControl
+    x:Class="ScrewMachine.Dashboard.Plugins.HardwareStudio.HardwareStudioView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+    xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+    xmlns:dxlc="http://schemas.devexpress.com/winfx/2008/xaml/layoutcontrol"
+    xmlns:dxprg="http://schemas.devexpress.com/winfx/2008/xaml/propertygrid"
+    Background="Transparent">
+
+    <Grid Margin="10">
+        <dx:DXTabControl Background="Transparent">
+            <dx:DXTabControl.View>
+                <dx:TabControlMultiLineView HeaderLocation="Top" />
+            </dx:DXTabControl.View>
+
+            <!-- ========================================== -->
+            <!-- 🟢 TAB 1: IO 语义化映射字典 (IO Mapping) -->
+            <!-- ========================================== -->
+            <dx:DXTabItem Header="🔌 IO 标签映射字典 (IO Tag Mapping)">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="目标 IO 底板节点名:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <dxe:TextEdit x:Name="TxtIoNodeName" Text="motion_bus_io_0" Width="150" FontWeight="Bold"/>
+                        <dx:SimpleButton Content="🔄 刷新" Margin="10,0,0,0" Click="BtnRefreshIo_Click"/>
+
+                        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="15,0"/>
+
+                        <dx:SimpleButton Content="➕ 新增映射" Background="#FF00838F" Foreground="White" Click="BtnAddIo_Click" Margin="0,0,10,0"/>
+                        <dx:SimpleButton Content="❌ 删除选中" Foreground="Red" Click="BtnDelIo_Click" Margin="0,0,10,0"/>
+                        <dx:SimpleButton Content="💾 保存并下发底层" Background="#FF2E7D32" Foreground="White" FontWeight="Bold" Click="BtnSaveIo_Click"/>
+                    </StackPanel>
+
+                    <dxg:GridControl x:Name="GridIoMap" Grid.Row="1" AutoGenerateColumns="None">
+                        <dxg:GridControl.View>
+                            <dxg:TableView AllowEditing="True" NavigationStyle="Cell" ShowGroupPanel="False" AlternateRowBackground="#2D2D30"/>
+                        </dxg:GridControl.View>
+                        <dxg:GridColumn FieldName="TagName" Header="语义化标签 (Tag Name)" Width="2*">
+                            <dxg:GridColumn.CellStyle>
+                                <Style TargetType="dxg:LightweightCellEditor">
+                                    <Setter Property="Foreground" Value="#00BCD4"/>
+  
+                                </Style>
+                            </dxg:GridColumn.CellStyle>
+                        </dxg:GridColumn>
+                        <dxg:GridColumn FieldName="PhysicalPin" Header="绑定的物理引脚 (Pin)" Width="1*" />
+                        <dxg:GridColumn FieldName="Description" Header="备注说明" Width="3*" />
+                    </dxg:GridControl>
+                </Grid>
+            </dx:DXTabItem>
+
+            <!-- ========================================== -->
+            <!-- 🟢 TAB 2: 多轴机械物理参数 (Axis Parameters) -->
+            <!-- ========================================== -->
+            <dx:DXTabItem Header="⚙️ 多轴物理参数标定 (Axis Calibration)">
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="选择要标定的目标轴:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <dxe:ComboBoxEdit x:Name="CboAxisNodeName" Width="200" IsTextEditable="True" SelectedIndexChanged="CboAxisNodeName_SelectedIndexChanged">
+                            <dxe:ComboBoxEditItem Content="axis_x_0" />
+                            <dxe:ComboBoxEditItem Content="axis_y_0" />
+                            <dxe:ComboBoxEditItem Content="axis_z_0" />
+                        </dxe:ComboBoxEdit>
+
+                        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="15,0"/>
+
+                        <dx:SimpleButton Content="💾 保存轴参数至沙盒" Background="#FF2E7D32" Foreground="White" FontWeight="Bold" Click="BtnSaveAxis_Click"/>
+                    </StackPanel>
+
+                    <dxprg:PropertyGridControl x:Name="PropGridAxis" Grid.Row="1" ExpandCategoriesWhenSelectedObjectChanged="True" ShowDescriptionIn="Panel" />
+                </Grid>
+            </dx:DXTabItem>
+        </dx:DXTabControl>
+    </Grid>
+</UserControl>

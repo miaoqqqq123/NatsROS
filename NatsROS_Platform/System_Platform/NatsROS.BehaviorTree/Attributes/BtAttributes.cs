@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Hexiv.BehaviorTree.Attributes
+﻿namespace NatsROS.BehaviorTree.Attributes
 {
     // 用于标识这是一个可以被拖拽的行为树组件
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]

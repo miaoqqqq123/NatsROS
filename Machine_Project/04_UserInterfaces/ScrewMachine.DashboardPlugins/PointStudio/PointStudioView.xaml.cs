@@ -1,14 +1,16 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Windows;
+﻿using DevExpress.Charts.Native;
 using DevExpress.Xpf.Bars;
 using DevExpress.Xpf.Editors.Settings;
 using NATS.Client.Core;
 using NatsROS.Core.Communication;
-using ScrewMachine.Messages.Motion;
+using NatsROS.Messages.Motion;
 using NatsROS.Messages.RMS;
+using ScrewMachine.Messages.Motion;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Windows;
 using MessageBox = System.Windows.MessageBox;
 using UserControl = System.Windows.Controls.UserControl;
 
@@ -24,14 +26,14 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
         public string GroupCategory { get; set; } = ""; // 【新增】：分组类别
         public string Type { get; set; } = "";
 
-        public string DisplayName 
+        public string DisplayName
         {
-            get => _displayName; 
-            set 
-            { 
-                _displayName = value; 
-                OnPropertyChanged(); 
-            } 
+            get => _displayName;
+            set
+            {
+                _displayName = value;
+                OnPropertyChanged();
+            }
         }
 
         public PointFeatureBase? RefObject { get; set; }
@@ -83,7 +85,7 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
                 var y2Sub = new RosSubscriber<ActionFeedback<AxisMoveFeedback>>(_nats, "axis_y2.move.feedback", RosQosProfile.SensorData);
                 var activeSub = new RosSubscriber<RecipeActivatedEvent>(_nats, "rms.event.recipe_activated", RosQosProfile.Reliable);
 
-                _ = Task.Run(async () => 
+                _ = Task.Run(async () =>
                 {
                     await foreach (var msg in dispSub.SubscribeAsync(ct))
                     {
@@ -92,7 +94,7 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
                     }
                 });
 
-                _ = Task.Run(async () => 
+                _ = Task.Run(async () =>
                 {
                     await foreach (var msg in y1Sub.SubscribeAsync(ct))
                     {
@@ -101,7 +103,7 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
                     }
                 });
 
-                _ = Task.Run(async () => 
+                _ = Task.Run(async () =>
                 {
                     await foreach (var msg in y2Sub.SubscribeAsync(ct))
                     {
@@ -114,7 +116,7 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
                 var activeRes = await activeClient.CallAsync(new GetActiveRecipeReq(), TimeSpan.FromSeconds(2), ct);
                 if (activeRes?.ActiveRecipe != null) SyncToRecipe(activeRes.ActiveRecipe.RecipeId);
 
-                _ = Task.Run(async () => 
+                _ = Task.Run(async () =>
                 {
                     await foreach (var msg in activeSub.SubscribeAsync(ct))
                     {
@@ -162,7 +164,8 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
                 var res = await rmsClient.CallAsync(new GetRecipesReq(), TimeSpan.FromSeconds(2));
                 if (res != null)
                 {
-                    Dispatcher.Invoke(() => {
+                    Dispatcher.Invoke(() =>
+                    {
                         ((ComboBoxEditSettings)EditRecipe.EditSettings).ItemsSource = res.Recipes.ToList();
                     });
                 }
@@ -209,7 +212,8 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
         {
             try
             {
-                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(_nats, "brain_dispenser");
+                // 【核心修正】：向全网永远在线的母体节点要全局数据！
+                var paramClient = new NatsROS.Core.Parameters.RosParameterClient(_nats, "container_manager");
                 var keys = await paramClient.ListAsync();
 
                 foreach (var key in keys.Where(k => k.StartsWith("MachinePoint_") || k.StartsWith("MachineTraj_")))
@@ -221,47 +225,77 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
                         if (obj is SinglePointModel sp) _allSinglePoints.Add(sp);
                         else if (obj is TrajectoryModel tm) _allTrajectories.Add(tm);
                     }
-                    catch 
-                    { 
+                    catch
+                    {
                     }
                 }
-                BuildNavigationTree();
+                BuildNavigationTree(true, false);
             }
-            catch 
-            { 
+            catch
+            {
             }
         }
 
         private void LoadRecipePoints()
         {
-            _allSinglePoints.Clear(); _allTrajectories.Clear(); NavItems.Clear(); GridData.ItemsSource = null;
-            if (_currentRecipe == null) return;
+            _allSinglePoints.Clear(); 
+            _allTrajectories.Clear(); 
+            NavItems.Clear(); 
+            GridData.ItemsSource = null;
+            if (_currentRecipe == null || string.IsNullOrEmpty(_currentRecipe.PayloadJson)) return;
 
-            foreach (var kvp in _currentRecipe.Formula.Where(k => k.Key.StartsWith("RecipePoint_") || k.Key.StartsWith("RecipeTraj_")))
+            try
             {
-                try
+                // 使用 JsonDocument 动态读取 PayloadJson
+                using var doc = JsonDocument.Parse(_currentRecipe.PayloadJson);
+                foreach (var prop in doc.RootElement.EnumerateObject())
                 {
-                    var obj = JsonSerializer.Deserialize<PointFeatureBase>(kvp.Value);
-                    if (obj is SinglePointModel sp) _allSinglePoints.Add(sp);
-                    else if (obj is TrajectoryModel tm) _allTrajectories.Add(tm);
-                }
-                catch 
-                { 
+                    if (prop.Name.StartsWith("RecipePoint_"))
+                    {
+                        var sp = JsonSerializer.Deserialize<SinglePointModel>(prop.Value.GetRawText(), _innerJsonOpts);
+                        if (sp != null) _allSinglePoints.Add(sp);
+                    }
+                    else if (prop.Name.StartsWith("RecipeTraj_"))
+                    {
+                        var tm = JsonSerializer.Deserialize<TrajectoryModel>(prop.Value.GetRawText(), _innerJsonOpts);
+                        if (tm != null) _allTrajectories.Add(tm);
+                    }
                 }
             }
-            BuildNavigationTree();
+            catch { }
+
+            BuildNavigationTree(true, true);
         }
 
-        private void BuildNavigationTree()
+        private void BuildNavigationTree(bool isVisiblePoint, bool isVisibleTraj)
         {
-            // 1. 添加单点集合组
-            NavItems.Add(new NavItemModel { GroupCategory = "📍 离散单点库 (Discrete Points)", Type = "Single", DisplayName = "📝 所有单点集合" });
-
-            // 2. 添加轨迹集合组
-            foreach (var traj in _allTrajectories)
+            // 1. 添加单点集合组 (单点是写死的固定组，不受影响)
+            if (isVisiblePoint) NavItems.Add(new NavItemModel { GroupCategory = "📍 离散单点库 (Discrete Points)", Type = "Single", DisplayName = "📝 所有单点集合" });
+            
+            // 2. 轨迹集合组：【核心修复】
+            if (isVisibleTraj)
             {
-                NavItems.Add(new NavItemModel { GroupCategory = "〽️ 连续轨迹库 (Trajectories)", Type = "Trajectory", DisplayName = $"〰️ {traj.Name}", RefObject = traj });
+         
+                if (_allTrajectories.Count == 0)
+                {
+                    // 如果一条轨迹都没有，塞入一个占位符，强行把“组头”和“➕按钮”撑出来！
+                    NavItems.Add(new NavItemModel
+                    {
+                        GroupCategory = "〽️ 连续轨迹库 (Trajectories)",
+                        Type = "EmptyPlaceholder",
+                        DisplayName = " (当前配方暂无轨迹)"
+                    });
+                }
+                else
+                {
+                    // 如果有轨迹，正常加载
+                    foreach (var traj in _allTrajectories)
+                    {
+                        NavItems.Add(new NavItemModel { GroupCategory = "〽️ 连续轨迹库 (Trajectories)", Type = "Trajectory", DisplayName = $"〰️ {traj.Name}", RefObject = traj });
+                    }
+                }
             }
+
             if (NavItems.Count > 0) GridNav.SelectedItem = NavItems[0];
         }
 
@@ -304,6 +338,10 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
             string newName = $"NewPath_{_allTrajectories.Count + 1}";
             var newTraj = new TrajectoryModel { Name = newName };
             _allTrajectories.Add(newTraj);
+
+            // 【核心修复】：如果存在占位符，把它干掉！
+            var placeholder = NavItems.FirstOrDefault(n => n.Type == "EmptyPlaceholder");
+            if (placeholder != null) NavItems.Remove(placeholder);
 
             var navItem = new NavItemModel
             {
@@ -428,7 +466,8 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
 
                 if (isMachine) // 存系统参数
                 {
-                    var paramClient = new NatsROS.Core.Parameters.RosParameterClient(_nats, "brain_dispenser");
+                    // 【核心修正】：存给母体节点
+                    var paramClient = new NatsROS.Core.Parameters.RosParameterClient(_nats, "container_manager");
                     foreach (var sp in _allSinglePoints) { await paramClient.SetAsync($"MachinePoint_{sp.Name}", JsonSerializer.Serialize(sp, typeof(PointFeatureBase), _innerJsonOpts)); count++; }
                     foreach (var tr in _allTrajectories) { await paramClient.SetAsync($"MachineTraj_{tr.Name}", JsonSerializer.Serialize(tr, typeof(PointFeatureBase), _innerJsonOpts)); count++; }
                     MessageBox.Show($"✅ 已保存 {count} 个机台公共数据！");
@@ -436,16 +475,48 @@ namespace ScrewMachine.Dashboard.Plugins.PointStudio
                 else // 存 RMS配方
                 {
                     if (_currentRecipe == null) return;
-                    var keysToRemove = _currentRecipe.Formula.Keys.Where(k => k.StartsWith("RecipePoint_") || k.StartsWith("RecipeTraj_")).ToList();
-                    foreach (var k in keysToRemove) _currentRecipe.Formula.Remove(k);
 
-                    foreach (var sp in _allSinglePoints) { _currentRecipe.Formula[$"RecipePoint_{sp.Name}"] = JsonSerializer.Serialize(sp, typeof(PointFeatureBase), _innerJsonOpts); count++; }
-                    foreach (var tr in _allTrajectories) { _currentRecipe.Formula[$"RecipeTraj_{tr.Name}"] = JsonSerializer.Serialize(tr, typeof(PointFeatureBase), _innerJsonOpts); count++; }
+                    // 【核心魔法】：使用 JsonNode 动态编辑 JSON 字符串，完美兼容强类型数据！
+                    var jsonNode = System.Text.Json.Nodes.JsonNode.Parse(_currentRecipe.PayloadJson) as System.Text.Json.Nodes.JsonObject;
+                    if (jsonNode == null) jsonNode = new System.Text.Json.Nodes.JsonObject();
 
-                    var saveClient = new RosServiceClient<SaveRecipeReq, SaveRecipeRes>(_nats, "rms.save");
+                    // 1. 删除旧的点位节点
+                    var keysToRemove = jsonNode.Select(kvp => kvp.Key).Where(k => k.StartsWith("RecipePoint_") || k.StartsWith("RecipeTraj_")).ToList();
+                    foreach (var k in keysToRemove) jsonNode.Remove(k);
+
+                    // 2. 插入最新的点位节点
+                    foreach (var sp in _allSinglePoints)
+                    {
+                        jsonNode[$"RecipePoint_{sp.Name}"] = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(sp, typeof(PointFeatureBase), _innerJsonOpts));
+                        count++;
+                    }
+                    foreach (var tr in _allTrajectories)
+                    {
+                        jsonNode[$"RecipeTraj_{tr.Name}"] = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(tr, typeof(PointFeatureBase), _innerJsonOpts));
+                        count++;
+                    }
+
+                    // 3. 生成新的 JSON 并构造新配方对象
+                    string updatedJson = jsonNode.ToJsonString();
                     string opName = NatsROS.Core.Security.RosSecurityContext.DisplayName ?? "在线示教员";
-                    var res = await saveClient.CallAsync(new SaveRecipeReq(_currentRecipe, opName, $"更新了 {count} 个工艺数据"), TimeSpan.FromSeconds(3));
-                    if (res != null && res.Success) MessageBox.Show($"✅ 成功保存 {count} 个工艺数据至配方！");
+
+                    var updatedRecipe = new RecipeModel(
+                        _currentRecipe.RecipeId, _currentRecipe.RecipeName, _currentRecipe.Version, RecipeState.Draft,
+                        _currentRecipe.SchemaType, updatedJson,
+                        opName, 0);
+
+                    // 4. 发起网络保存请求
+                    var saveClient = new RosServiceClient<SaveRecipeReq, SaveRecipeRes>(_nats, "rms.save");
+                    var res = await saveClient.CallAsync(new SaveRecipeReq(updatedRecipe, updatedRecipe.LastModifiedBy, $"在线示教更新了 {count} 个点位/轨迹数据"), TimeSpan.FromSeconds(3));
+
+                    if (res != null && res.Success)
+                    {
+                        _currentRecipe = updatedRecipe; // 更新本地缓存
+                        MessageBox.Show($"✅ 成功保存 {count} 个工艺数据至配方！");
+                    }
+                    else
+                        MessageBox.Show(res?.Message ?? "保存超时");
+
                 }
             }
             catch (Exception ex) { MessageBox.Show($"保存失败: {ex.Message}"); }

@@ -1,6 +1,4 @@
-﻿using Hexiv.BehaviorTree.Attributes;
-using Hexiv.BehaviorTree.Core;
-using NATS.Client.Core;
+﻿using NATS.Client.Core;
 using NatsROS.Core.Communication;
 using NatsROS.Core.SystemMessages;
 using ScrewMachine.Messages.Hardware;
@@ -8,6 +6,9 @@ using ScrewMachine.Messages.Motion;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NatsROS.BehaviorTree.Attributes;
+using NatsROS.BehaviorTree.Core;
+using NatsROS.Messages.Motion;
 
 namespace ScrewMachine.MissionControl.MainDirector.Actions
 {
